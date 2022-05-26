@@ -1,34 +1,42 @@
 ﻿let notesElement = document.getElementById("notes");
 
 let currentX, currentY, endX, endY;
-let sourceElement;
+let sourceElement = undefined;
 
 const mouseDown = e => {
-    sourceElement = e.srcElement;
     e.preventDefault();
-    currentX = e.clientX;
-    currentY = e.clientY;
+    sourceElement = e.srcElement;
 
-    document.onmousemove = mouseMove;
-    document.onmouseup = mouseUp;
+    currentX = e.clientX || e.changedTouches[0].pageX;
+    currentY = e.clientY || e.changedTouches[0].pageY;
 }
 
 const mouseMove = e => {
+    if (sourceElement === undefined) {
+        return;
+    }
     e.preventDefault();
-    endX = currentX - e.clientX;
-    endY = currentY - e.clientY;
-    currentX = e.clientX;
-    currentY = e.clientY;
+
+    const currentClientX = e.clientX || e.changedTouches[0].pageX;
+    const currentClientY = e.clientY || e.changedTouches[0].pageY;
+
+    endX = currentX - currentClientX;
+    endY = currentY - currentClientY;
+    currentX = currentClientX;
+    currentY = currentClientY;
 
     sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
     sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
 }
 
 function mouseUp() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-    sourceElement = null;
+    sourceElement = undefined;
 }
+
+document.addEventListener("touchmove", mouseMove);
+document.addEventListener("touchend", mouseUp);
+document.addEventListener("mousemove", mouseMove);
+document.addEventListener("mouseup", mouseUp);
 
 let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
@@ -43,7 +51,10 @@ const addNote = (note) => {
     let element = document.createElement('div');
     element.innerText = note;
     element.className = "stickynote";
-    element.onmousedown = mouseDown;
+    //element.addEventListener("mouseup", mouseUp);
+    element.addEventListener("mousedown", mouseDown);
+    //element.addEventListener("touchend", mouseUp);
+    element.addEventListener("touchstart", mouseDown);
     notesElement.insertBefore(element, notesElement.firstChild);
 }
 
