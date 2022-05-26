@@ -49,6 +49,7 @@ const pointerMove = e => {
 const pointerUp = e => {
     sourceElement = undefined;
     e.preventDefault();
+    e.stopPropagation();
 }
 
 document.addEventListener("pointermove", pointerMove);
@@ -70,6 +71,18 @@ const addNote = (note) => {
     element.style.height = "100px";
     element.style.transform = `rotateZ(${Math.floor(Math.random() * 8) - 4}deg)`;
     element.addEventListener("pointerdown", pointerDown);
+    element.addEventListener("dblclick", e => {
+        let note = prompt("Add note", element.innerText);
+        if (note === undefined || note == null || note.length === 0) {
+            return;
+        }
+        element.innerText = note;
+    });
+    element.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("element contextmenu");
+    });
     notesElement.insertBefore(element, notesElement.firstChild);
 }
 
@@ -96,7 +109,10 @@ window.addEventListener('mouseup', e => {
 
 window.addEventListener('contextmenu', e => {
     e.preventDefault();
-    showNoteDialog();
+
+    if (sourceElement === undefined) {
+        showNoteDialog();
+    }
 });
 
 connection.on('notes', function (msg) {
