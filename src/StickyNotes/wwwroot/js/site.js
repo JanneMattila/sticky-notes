@@ -5,6 +5,14 @@ let currentX, currentY, endX, endY;
 let sourceElement = undefined;
 let selectedElement = undefined;
 
+const deselectNotes = () => {
+    const selectedElements = document.getElementsByClassName("selected");
+    for (let i = 0; i < selectedElements.length; i++) {
+        const element = selectedElements[i];
+        element.className = element.className.replace("selected");
+    }
+}
+
 const pointerDown = e => {
     currentX = e.clientX || e.changedTouches[0].pageX;
     currentY = e.clientY || e.changedTouches[0].pageY;
@@ -14,8 +22,9 @@ const pointerDown = e => {
     const offsetX = e.offsetX || e.changedTouches[0].screenX - e.changedTouches[0].clientX;
     const offsetY = e.offsetY || e.changedTouches[0].screenY - e.changedTouches[0].clientY;
 
+    deselectNotes();
     selectedElement = sourceElement = e.srcElement;
-
+    sourceElement.className += " selected";
     isResize = offsetX >= width * 0.7 && offsetY >= height * 0.7;
     e.preventDefault();
 }
@@ -105,6 +114,7 @@ window.addEventListener('blur', () => {
 
 window.addEventListener('mouseup', e => {
     console.log("window mouseup");
+    deselectNotes();
 });
 
 window.addEventListener('contextmenu', e => {
