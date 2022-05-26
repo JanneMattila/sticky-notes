@@ -1,5 +1,35 @@
 ﻿let notesElement = document.getElementById("notes");
 
+let currentX, currentY, endX, endY;
+let sourceElement;
+
+const mouseDown = e => {
+    sourceElement = e.srcElement;
+    e.preventDefault();
+    currentX = e.clientX;
+    currentY = e.clientY;
+
+    document.onmousemove = mouseMove;
+    document.onmouseup = mouseUp;
+}
+
+const mouseMove = e => {
+    e.preventDefault();
+    endX = currentX - e.clientX;
+    endY = currentY - e.clientY;
+    currentX = e.clientX;
+    currentY = e.clientY;
+
+    sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
+    sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
+}
+
+function mouseUp() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+    sourceElement = null;
+}
+
 let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
 let connection = new signalR.HubConnectionBuilder()
@@ -10,8 +40,10 @@ let connection = new signalR.HubConnectionBuilder()
 
 const addNote = (note) => {
     console.log(note);
-    let element = document.createElement('pre');
+    let element = document.createElement('div');
     element.innerText = note;
+    element.className = "stickynote";
+    element.onmousedown = mouseDown;
     notesElement.insertBefore(element, notesElement.firstChild);
 }
 
@@ -34,7 +66,6 @@ window.addEventListener('blur', () => {
 
 window.addEventListener('contextmenu', e => {
     e.preventDefault();
-
     showNoteDialog();
 });
 
