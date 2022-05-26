@@ -1,50 +1,47 @@
-﻿let echoElement = document.getElementById("echo");
-function addMessage(msg) {
-    console.log(msg);
-    let element = document.createElement('pre');
-    element.innerText = msg;
-    echoElement.insertBefore(element, echoElement.firstChild);
-}
+﻿let notesElement = document.getElementById("notes");
 
 let protocol = new signalR.JsonHubProtocol();
-let hubRoute = "Echo";
+let hubRoute = "Notes";
 let connection = new signalR.HubConnectionBuilder()
     .withUrl(hubRoute)
     .withAutomaticReconnect()
     .withHubProtocol(protocol)
     .build();
 
-const originalTitle = document.title;
+const addNote = (note) => {
+    console.log(note);
+    let element = document.createElement('pre');
+    element.innerText = note;
+    notesElement.insertBefore(element, notesElement.firstChild);
+}
 
-let isFocus = true;
-let unreadMessages = 0;
+const showNoteDialog = () => {
 
-function updateTitle() {
-    document.title = originalTitle + (isFocus || unreadMessages === 0 ? "" : `: ${unreadMessages}`);
+    while (true) {
+        let note = prompt("Add note");
+        if (note === undefined || note == null || note.length === 0) {
+            break;
+        }
+        addNote(note);
+    }
 }
 
 window.addEventListener('focus', () => {
-    isFocus = true;
-    unreadMessages = 0;
-    updateTitle();
 });
 
 window.addEventListener('blur', () => {
-    isFocus = false;
 });
 
-connection.on('echo', function (msg) {
+window.addEventListener('contextmenu', e => {
+    e.preventDefault();
+
+    showNoteDialog();
+});
+
+connection.on('notes', function (msg) {
     let data = "Date received: " + new Date().toLocaleTimeString();
-    data += "\n" + msg.request;
-    data += "\n\n" + msg.headers;
     data += "\n" + msg.body;
     addMessage(data);
-
-    if (!isFocus) {
-        unreadMessages++;
-    }
-
-    updateTitle();
 });
 
 connection.onclose(function (e) {
@@ -64,13 +61,6 @@ connection.start()
         addMessage(err);
     });
 
-function copyToClipboard(elementName) {
-    var endpoint = document.getElementById(elementName);
-    console.log(endpoint.innerText);
-
-    navigator.clipboard.writeText(endpoint.innerText);
-}
-
 function showHelp() {
     document.getElementById('helpOpen').style.display = 'none';
     document.getElementById('helpClose').style.display = '';
@@ -83,14 +73,10 @@ function hideHelp() {
     document.getElementById('help').style.display = 'none';
 }
 
-function clearLog() {
-    console.log('clearing log');
-    echoElement.innerHTML = '';
-    updateTitle();
-}
-
 document.addEventListener('keyup', (event) => {
     if (event.keyCode === 27 /* Esc */) {
-        hideHelp();
+    }
+    else {
+        showNoteDialog();
     }
 });
