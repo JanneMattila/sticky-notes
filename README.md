@@ -1,2 +1,3 @@
-# sticky-notes
+# Sticky Notes
+
 Sticky Notes
