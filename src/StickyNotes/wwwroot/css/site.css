@@ -1,7 +1,8 @@
 ﻿body {
     padding: 5px;
     position: absolute;
-    touch-action: none;
+    touch-action: pinch-zoom;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .stickynote {
@@ -10,7 +11,24 @@
     z-index: 100;
     background-color: lightyellow;
     border: 1px solid rgba(0,0,0,0.4);
-    cursor: move;
-    touch-action: manipulation;
+    min-width: 100px;
+    min-height: 100px;
+    resize: none;
+    touch-action: none;
+    /*transform: rotateZ(2);*/
+    overflow: auto;
+    /*cursor: pointer;*/
     box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    /*display: block;*/
+    font-size: 5vmin;
+    display: block;
+    /* Prevent text selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

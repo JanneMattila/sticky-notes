@@ -1,21 +1,29 @@
 ﻿let notesElement = document.getElementById("notes");
 
+let isResize = false;
 let currentX, currentY, endX, endY;
 let sourceElement = undefined;
+let selectedElement = undefined;
 
-const mouseDown = e => {
-    e.preventDefault();
-    sourceElement = e.srcElement;
-
+const pointerDown = e => {
     currentX = e.clientX || e.changedTouches[0].pageX;
     currentY = e.clientY || e.changedTouches[0].pageY;
+
+    const width = e.srcElement.offsetWidth;
+    const height = e.srcElement.offsetHeight;
+    const offsetX = e.offsetX || e.changedTouches[0].screenX - e.changedTouches[0].clientX;
+    const offsetY = e.offsetY || e.changedTouches[0].screenY - e.changedTouches[0].clientY;
+
+    selectedElement = sourceElement = e.srcElement;
+
+    isResize = offsetX >= width * 0.7 && offsetY >= height * 0.7;
+    e.preventDefault();
 }
 
-const mouseMove = e => {
+const pointerMove = e => {
     if (sourceElement === undefined) {
         return;
     }
-    e.preventDefault();
 
     const currentClientX = e.clientX || e.changedTouches[0].pageX;
     const currentClientY = e.clientY || e.changedTouches[0].pageY;
@@ -25,18 +33,26 @@ const mouseMove = e => {
     currentX = currentClientX;
     currentY = currentClientY;
 
-    sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
-    sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
+    if (isResize) {
+        const width = Math.floor(sourceElement.style.width.replace("px", ""));
+        const height = Math.floor(sourceElement.style.height.replace("px", ""));
+
+        sourceElement.style.width = `${width - endX}px`;
+        sourceElement.style.height = `${height - endY}px`;
+    }
+    else {
+        sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
+        sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
+    }
 }
 
-function mouseUp() {
+const pointerUp = e => {
     sourceElement = undefined;
+    e.preventDefault();
 }
 
-document.addEventListener("touchmove", mouseMove);
-document.addEventListener("touchend", mouseUp);
-document.addEventListener("mousemove", mouseMove);
-document.addEventListener("mouseup", mouseUp);
+document.addEventListener("pointermove", pointerMove);
+document.addEventListener("pointerup", pointerUp);
 
 let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
@@ -47,14 +63,13 @@ let connection = new signalR.HubConnectionBuilder()
     .build();
 
 const addNote = (note) => {
-    console.log(note);
     let element = document.createElement('div');
     element.innerText = note;
     element.className = "stickynote";
-    //element.addEventListener("mouseup", mouseUp);
-    element.addEventListener("mousedown", mouseDown);
-    //element.addEventListener("touchend", mouseUp);
-    element.addEventListener("touchstart", mouseDown);
+    element.style.width = "100px";
+    element.style.height = "100px";
+    element.style.transform = `rotateZ(${Math.floor(Math.random() * 8) - 4}deg)`;
+    element.addEventListener("pointerdown", pointerDown);
     notesElement.insertBefore(element, notesElement.firstChild);
 }
 
@@ -73,6 +88,10 @@ window.addEventListener('focus', () => {
 });
 
 window.addEventListener('blur', () => {
+});
+
+window.addEventListener('mouseup', e => {
+    console.log("window mouseup");
 });
 
 window.addEventListener('contextmenu', e => {
@@ -115,10 +134,18 @@ function hideHelp() {
     document.getElementById('help').style.display = 'none';
 }
 
-document.addEventListener('keyup', (event) => {
-    if (event.keyCode === 27 /* Esc */) {
+document.addEventListener('keyup', (e) => {
+    if (e.key === "Escape") {
     }
-    else {
+    else if (e.key === "Backspace" || e.key === "Delete") {
+        if (selectedElement !== undefined) {
+            notesElement.removeChild(selectedElement);
+            selectedElement = undefined;
+        }
+    }
+    else if (e.key === "Alt") {
+    }
+    else if (!e.altKey) {
         showNoteDialog();
     }
 });
