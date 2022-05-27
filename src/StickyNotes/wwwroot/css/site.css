@@ -1,7 +1,8 @@
-﻿body {
+﻿html, body {
     padding: 5px;
     position: absolute;
     touch-action: pinch-zoom;
+    overscroll-behavior: none;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -14,15 +15,12 @@
     min-width: 100px;
     min-height: 100px;
     resize: none;
-    touch-action: none;
-    /*transform: rotateZ(2);*/
     overflow: auto;
-    /*cursor: pointer;*/
+    touch-action: none;
     box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
-    /*display: block;*/
     font-size: 5vmin;
     display: block;
     /* Prevent text selection */
@@ -34,5 +32,6 @@
 }
 
 .selected {
-    border: 2px solid rgba(0,0,0,0.4);
+    border: 2px solid rgba(0,0,0,0.8);
+    box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
 }
