@@ -197,6 +197,7 @@ const createOrUpdateNoteElement = (element, note) => {
     element.style.height = `${note.height}px`;
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
+        pointers = [];
         let noteText = prompt("Add note", element.innerText);
         if (noteText === undefined || noteText == null || noteText.length === 0) {
             return;
@@ -206,6 +207,7 @@ const createOrUpdateNoteElement = (element, note) => {
         connection.invoke("UpdateNote", id, note);
     });
     element.addEventListener("contextmenu", e => {
+        pointers = [];
         e.preventDefault();
         e.stopPropagation();
         console.log("element contextmenu");
@@ -219,6 +221,7 @@ const createOrUpdateNoteElement = (element, note) => {
         connection.invoke("UpdateNote", id, note);
     });
 }
+
 const addNote = (noteText, color) => {
     let note = {
         id: generateId(),
