@@ -1,14 +1,15 @@
 {
-  "name": "echo",
+  "name": "stickynotes",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "stickynotes \"Error: no test specified\" && exit 1"
   },
   "author": "Janne Mattila",
   "license": "MIT",
   "dependencies": {
-    "@microsoft/signalr": "^6.0.0"
+    "@microsoft/signalr": "^6.0.0",
+    "bootstrap": "^5.1.3"
   }
 }

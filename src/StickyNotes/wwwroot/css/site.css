@@ -1,9 +1,18 @@
 ﻿html, body {
-    padding: 5px;
+    margin: 0px;
     position: absolute;
     touch-action: none;
     overscroll-behavior: none;
     font-family: Verdana, Arial;
+}
+
+.noTextSelect {
+    /* Prevent text selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .stickynote {

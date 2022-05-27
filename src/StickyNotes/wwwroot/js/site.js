@@ -3,6 +3,7 @@
 let scale = 1;
 let isMove = false;
 let isResize = false;
+let isModalOpen = false;
 let currentX, currentY, endX, endY;
 let sourceElement = undefined;
 let selectedElement = undefined;
@@ -198,27 +199,48 @@ const createOrUpdateNoteElement = (element, note) => {
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
         pointers = [];
-        let noteText = prompt("Add note", element.innerText);
-        if (noteText === undefined || noteText == null || noteText.length === 0) {
-            return;
+
+        const modalElement = document.getElementById("colorModal");
+        const noteTextElement = document.getElementById("noteText");
+        const noteColorSelectElement = document.getElementById("noteColor");
+        const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
+
+        const updateNoteSaveButtonClick = e => {
+            modal.hide();
+
+            note.text = element.innerText = noteTextElement.value;
+            note.color = element.style.backgroundColor = noteColorSelectElement.value;
+            connection.invoke("UpdateNote", id, note);
         }
-        element.innerText = noteText;
-        note.text = noteText;
-        connection.invoke("UpdateNote", id, note);
+
+        const dialogShown = e => {
+            isModalOpen = true;
+            noteTextElement.focus();
+        }
+
+        const dialogClosed = e => {
+            isModalOpen = false;
+
+            updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
+            modalElement.removeEventListener("shown.bs.modal", dialogShown);
+            modalElement.removeEventListener("hide.bs.modal", dialogClosed);
+        }
+
+        updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
+        modalElement.addEventListener("shown.bs.modal", dialogShown);
+        modalElement.addEventListener("hide.bs.modal", dialogClosed);
+
+        noteTextElement.value = note.text;
+        noteColorSelectElement.value = note.color;
+
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
     });
     element.addEventListener("contextmenu", e => {
         pointers = [];
+
         e.preventDefault();
         e.stopPropagation();
-        console.log("element contextmenu");
-
-        let noteColor = prompt("Change color", element.style.backgroundColor);
-        if (noteColor === undefined || noteColor == null || noteColor.length === 0) {
-            return;
-        }
-        element.style.backgroundColor = noteColor;
-        note.color = noteColor;
-        connection.invoke("UpdateNote", id, note);
     });
 }
 
@@ -254,13 +276,54 @@ const addNote = (noteText, color) => {
 const showNoteDialog = () => {
     isMove = false;
     pointers = [];
-    while (true) {
-        let note = prompt("Add note");
-        if (note === undefined || note == null || note.length === 0) {
-            break;
-        }
-        addNote(note, "lightyellow");
+    if (isModalOpen) {
+        return;
     }
+
+    const modalElement = document.getElementById("colorModal");
+    const noteTextElement = document.getElementById("noteText");
+    const noteColorSelectElement = document.getElementById("noteColor");
+    const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
+
+    noteTextElement.value = "";
+    noteColorSelectElement.value = "lightyellow";
+
+    const updateNoteSaveButtonClick = e => {
+        modal.hide();
+
+        if (noteTextElement.value.length !== 0) {
+            addNote(noteTextElement.value, noteColorSelectElement.value);
+            noteTextElement.value = "";
+            noteColorSelectElement.value = "lightyellow";
+
+            updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
+            modalElement.addEventListener("shown.bs.modal", dialogShown);
+            modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    const dialogShown = e => {
+        isModalOpen = true;
+        noteTextElement.focus();
+    }
+
+    const dialogClosed = e => {
+        isModalOpen = false;
+
+        updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
+        modalElement.removeEventListener("shown.bs.modal", dialogShown);
+        modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+    }
+
+    updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
+    modalElement.addEventListener("shown.bs.modal", dialogShown);
+    modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
 }
 
 window.addEventListener('focus', () => {
