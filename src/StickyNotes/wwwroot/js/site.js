@@ -6,11 +6,10 @@ let currentX, currentY, endX, endY;
 let sourceElement = undefined;
 let selectedElement = undefined;
 
-const deselectNotes = () => {
-    const selectedElements = document.getElementsByClassName("selected");
-    for (let i = 0; i < selectedElements.length; i++) {
-        const element = selectedElements[i];
-        element.className = element.className.replace("selected");
+const deSelectNotes = () => {
+    const matches = document.getElementsByClassName("selected");
+    while (matches.length > 0) {
+        matches[0].classList.remove("selected");
     }
 }
 
@@ -21,9 +20,9 @@ const pointerDown = e => {
     const width = e.srcElement.offsetWidth;
     const height = e.srcElement.offsetHeight;
 
-    deselectNotes();
+    deSelectNotes();
     selectedElement = sourceElement = e.srcElement;
-    sourceElement.className += " selected";
+    sourceElement.className = "stickynote selected";
     isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.7;
     e.stopPropagation();
 }
@@ -125,7 +124,7 @@ window.addEventListener('blur', () => {
 });
 
 window.addEventListener('pointerdown', e => {
-    deselectNotes();
+    deSelectNotes();
 
     currentX = e.clientX;
     currentY = e.clientY;
@@ -176,12 +175,24 @@ function hideHelp() {
 }
 
 document.addEventListener('keyup', (e) => {
-    if (e.key === "Escape" || e.key === "Alt" || e.key === "F12" || e.key === "Tab") {
+    if (e.key === "Escape") {
+        deSelectNotes();
+        selectedElement = undefined;
+    }
+    else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab") {
     }
     else if (e.key === "Backspace" || e.key === "Delete") {
-        if (selectedElement !== undefined) {
-            notesElement.removeChild(selectedElement);
-            selectedElement = undefined;
+        const matches = document.getElementsByClassName("selected");
+        while (matches.length > 0) {
+            notesElement.removeChild(matches[0]);
+        }
+        selectedElement = undefined;
+    }
+    else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
+        deSelectNotes();
+        const elements = document.getElementsByClassName("stickynote");
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].classList.add("selected");
         }
     }
     else if (!e.altKey) {
