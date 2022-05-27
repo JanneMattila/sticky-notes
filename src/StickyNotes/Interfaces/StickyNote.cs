@@ -13,6 +13,9 @@ public class StickyNote
     [JsonPropertyName("height")]
     public double Height { get; set; }
 
+    [JsonPropertyName("color")]
+    public string Color { get; set; } = string.Empty;
+
     [JsonPropertyName("position")]
     public Position Position { get; set; } = new();
 

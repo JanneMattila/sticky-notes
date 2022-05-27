@@ -32,6 +32,7 @@ public class NotesHub : Hub
             updateNote.Text = note.Text;
             updateNote.Width = note.Width;
             updateNote.Height = note.Height;
+            updateNote.Color = note.Color;
             updateNote.Position.X = note.Position.X;
             updateNote.Position.Y = note.Position.Y;
             updateNote.Position.Rotation = note.Position.Rotation;

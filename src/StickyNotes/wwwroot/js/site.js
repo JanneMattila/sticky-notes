@@ -64,6 +64,7 @@ const updateNoteMove = (element) => {
     let note = {
         id: element.id,
         text: element.innerText,
+        color: element.style.backgroundColor,
         position: {
             x: noteX,
             y: noteY,
@@ -188,6 +189,7 @@ const createOrUpdateNoteElement = (element, note) => {
     element.id = note.id;
     element.innerText = note.text;
     element.className = "stickynote";
+    element.style.backgroundColor = note.color;
     element.style.top = `${note.position.x}px`;
     element.style.left = `${note.position.y}px`;
     element.style.transform = `rotateZ(${note.position.rotation}deg)`;
@@ -207,12 +209,21 @@ const createOrUpdateNoteElement = (element, note) => {
         e.preventDefault();
         e.stopPropagation();
         console.log("element contextmenu");
+
+        let noteColor = prompt("Change color", element.style.backgroundColor);
+        if (noteColor === undefined || noteColor == null || noteColor.length === 0) {
+            return;
+        }
+        element.style.backgroundColor = noteColor;
+        note.color = noteColor;
+        connection.invoke("UpdateNote", id, note);
     });
 }
-const addNote = (noteText) => {
+const addNote = (noteText, color) => {
     let note = {
         id: generateId(),
         text: noteText,
+        color: color,
         position: {
             x: 100,
             y: 100,
@@ -245,7 +256,7 @@ const showNoteDialog = () => {
         if (note === undefined || note == null || note.length === 0) {
             break;
         }
-        addNote(note);
+        addNote(note, "lightyellow");
     }
 }
 

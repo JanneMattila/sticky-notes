@@ -3,7 +3,7 @@
     position: absolute;
     touch-action: none;
     overscroll-behavior: none;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Verdana, Arial;
 }
 
 .stickynote {
@@ -14,12 +14,9 @@
     border: 1px solid rgba(0,0,0,0.4);
     min-width: 100px;
     min-height: 100px;
-    resize: none;
-    overflow: auto;
     touch-action: none;
     box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
     overflow: hidden;
-    text-overflow: ellipsis;
     word-wrap: break-word;
     font-size: 5vmin;
     display: block;
