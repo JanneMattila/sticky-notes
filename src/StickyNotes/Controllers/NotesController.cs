@@ -2,17 +2,16 @@
 using Microsoft.AspNetCore.SignalR;
 using StickyNotes.Hubs;
 
-namespace StickyNotes.Controllers
-{
-    [Produces("application/json")]
-    [Route("api/Notes")]
-    public class NotesController : Controller
-    {
-        private readonly IHubContext<NotesHub, INotesHub> _notesHub;
+namespace StickyNotes.Controllers;
 
-        public NotesController(IHubContext<NotesHub, INotesHub> notesHub)
-        {
-            _notesHub = notesHub;
-        }
+[Produces("application/json")]
+[Route("api/Notes")]
+public class NotesController : Controller
+{
+    private readonly IHubContext<NotesHub> _notesHub;
+
+    public NotesController(IHubContext<NotesHub> notesHub)
+    {
+        _notesHub = notesHub;
     }
 }

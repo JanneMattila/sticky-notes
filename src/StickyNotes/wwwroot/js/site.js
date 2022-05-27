@@ -8,6 +8,28 @@ let sourceElement = undefined;
 let selectedElement = undefined;
 let pointers = new Array();
 let pointerDiff = 0;
+let updateSend = new Date();
+
+const generateId = () => {
+    try {
+        const random = window.crypto.getRandomValues(new Uint32Array(4));
+        return random[0].toString(16) + "-" + random[1].toString(16) + "-" + random[2].toString(16) + "-" + random[3].toString(16);
+    } catch (e) {
+        console.log("Secure random number generation is not supported.");
+        return Math.floor(Math.random() * 10000000000).toString();
+    }
+}
+
+const getId = () => {
+    let id = document.location.hash.replace("#", "");
+    if (id.length === 0) {
+        id = generateId();
+        document.location.hash = id;
+    }
+    return id;
+}
+const id = getId();
+console.log(id);
 
 const deSelectNotes = () => {
     const matches = document.getElementsByClassName("selected");
@@ -30,6 +52,35 @@ const pointerDown = e => {
     sourceElement.className = "stickynote selected";
     isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.7;
     e.stopPropagation();
+}
+
+const updateNoteMove = (element) => {
+    const noteX = Math.floor(element.style.top.replace("px", ""));
+    const noteY = Math.floor(element.style.left.replace("px", ""));
+    const noteWidth = Math.floor(element.style.width.replace("px", ""));
+    const noteHeight = Math.floor(element.style.height.replace("px", ""));
+    const noteRotation = Math.floor(element.style.transform.replace("rotateZ(", "").replace("deg)", ""));
+
+    let note = {
+        id: element.id,
+        text: element.innerText,
+        position: {
+            x: noteX,
+            y: noteY,
+            rotation: noteRotation
+        },
+        width: noteWidth,
+        height: noteHeight
+    }
+
+    connection.invoke("UpdateNote", id, note)
+        .then(function () {
+            console.log("updateNoteMove called");
+        })
+        .catch(function (err) {
+            console.log("updateNoteMove error");
+            console.log(err);
+        });
 }
 
 const pointerMove = e => {
@@ -93,6 +144,11 @@ const pointerMove = e => {
         sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
         sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
     }
+
+    if (new Date() - updateSend > 20) {
+        updateNoteMove(sourceElement);
+        updateSend = new Date();
+    }
 }
 
 const pointerUp = e => {
@@ -103,6 +159,10 @@ const pointerUp = e => {
             pointers.splice(i, 1);
             break;
         }
+    }
+
+    if (sourceElement !== undefined) {
+        updateNoteMove(sourceElement);
     }
     sourceElement = undefined;
     e.stopPropagation();
@@ -124,27 +184,57 @@ let connection = new signalR.HubConnectionBuilder()
     .withHubProtocol(protocol)
     .build();
 
-const addNote = (note) => {
-    let element = document.createElement('div');
-    element.innerText = note;
+const createOrUpdateNoteElement = (element, note) => {
+    element.id = note.id;
+    element.innerText = note.text;
     element.className = "stickynote";
-    element.style.width = "100px";
-    element.style.height = "100px";
-    element.style.transform = `rotateZ(${Math.floor(Math.random() * 8) - 4}deg)`;
+    element.style.top = `${note.position.x}px`;
+    element.style.left = `${note.position.y}px`;
+    element.style.transform = `rotateZ(${note.position.rotation}deg)`;
+    element.style.width = `${note.width}px`;
+    element.style.height = `${note.height}px`;
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
-        let note = prompt("Add note", element.innerText);
-        if (note === undefined || note == null || note.length === 0) {
+        let noteText = prompt("Add note", element.innerText);
+        if (noteText === undefined || noteText == null || noteText.length === 0) {
             return;
         }
-        element.innerText = note;
+        element.innerText = noteText;
+        note.text = noteText;
+        connection.invoke("UpdateNote", id, note);
     });
     element.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
         console.log("element contextmenu");
     });
+}
+const addNote = (noteText) => {
+    let note = {
+        id: generateId(),
+        text: noteText,
+        position: {
+            x: 100,
+            y: 100,
+            rotation: Math.floor(Math.random() * 8) - 4
+        },
+        width: 100,
+        height: 100
+    }
+    let element = document.createElement('div');
+    createOrUpdateNoteElement(element, note);
     notesElement.insertBefore(element, notesElement.firstChild);
+
+    console.log("Calling UpdateNote:");
+    console.log(note);
+    connection.invoke("UpdateNote", id, note)
+        .then(function () {
+            console.log("UpdateNote called");
+        })
+        .catch(function (err) {
+            console.log("UpdateNote error");
+            console.log(err);
+        });
 }
 
 const showNoteDialog = () => {
@@ -201,10 +291,37 @@ connection.onclose(function (e) {
 connection.start()
     .then(function () {
         // Connected
+        connection.invoke("Join", id);
     })
     .catch(function (err) {
         addMessage(err);
     });
+
+connection.on("AllNotes", notes => {
+    console.log("Notes:");
+    console.log(notes);
+    for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        const element = document.createElement('div');
+        createOrUpdateNoteElement(element, note);
+        notesElement.insertBefore(element, notesElement.firstChild);
+    }
+});
+
+connection.on("UpdateNote", note => {
+    console.log("UpdateNote:");
+    console.log(note);
+
+    let element = document.getElementById(note.id);
+    if (element === undefined || element == null) {
+        element = document.createElement('div');
+        createOrUpdateNoteElement(element, note);
+        notesElement.insertBefore(element, notesElement.firstChild);
+    }
+    else {
+        createOrUpdateNoteElement(element, note);
+    }
+});
 
 function showHelp() {
     document.getElementById('helpOpen').style.display = 'none';

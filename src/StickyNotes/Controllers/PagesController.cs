@@ -8,9 +8,9 @@ namespace StickyNotes.Controllers;
 
 public class PagesController : Controller
 {
-    private readonly IHubContext<NotesHub, INotesHub> _notesHub;
+    private readonly IHubContext<NotesHub> _notesHub;
 
-    public PagesController(IHubContext<NotesHub, INotesHub> notesHub)
+    public PagesController(IHubContext<NotesHub> notesHub)
     {
         _notesHub = notesHub;
     }
