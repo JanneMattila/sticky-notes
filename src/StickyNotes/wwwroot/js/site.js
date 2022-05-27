@@ -239,7 +239,7 @@ const addNote = (noteText) => {
 
 const showNoteDialog = () => {
     isMove = false;
-
+    pointers = [];
     while (true) {
         let note = prompt("Add note");
         if (note === undefined || note == null || note.length === 0) {
