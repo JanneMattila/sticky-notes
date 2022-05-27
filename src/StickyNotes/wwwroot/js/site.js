@@ -223,12 +223,12 @@ const createOrUpdateNoteElement = (element, note) => {
 
             updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
             modalElement.removeEventListener("shown.bs.modal", dialogShown);
-            modalElement.removeEventListener("hide.bs.modal", dialogClosed);
+            modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
         updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
         modalElement.addEventListener("shown.bs.modal", dialogShown);
-        modalElement.addEventListener("hide.bs.modal", dialogClosed);
+        modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
         noteTextElement.value = note.text;
         noteColorSelectElement.value = note.color;
