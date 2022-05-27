@@ -1,10 +1,13 @@
 ﻿let notesElement = document.getElementById("notes");
 
+let scale = 1;
 let isMove = false;
 let isResize = false;
 let currentX, currentY, endX, endY;
 let sourceElement = undefined;
 let selectedElement = undefined;
+let pointers = new Array();
+let pointerDiff = 0;
 
 const deSelectNotes = () => {
     const matches = document.getElementsByClassName("selected");
@@ -14,6 +17,8 @@ const deSelectNotes = () => {
 }
 
 const pointerDown = e => {
+
+    pointers.push(e);
     currentX = e.clientX;
     currentY = e.clientY;
 
@@ -29,6 +34,31 @@ const pointerDown = e => {
 
 const pointerMove = e => {
     e.stopPropagation();
+
+    for (let i = 0; i < pointers.length; i++) {
+        if (pointers[i].pointerId == e.pointerId) {
+            pointers[i] = e;
+            break;
+        }
+    }
+    if (pointers.length > 1) {
+        // Handle gesture
+        console.log("handle gesture: " + pointers.length);
+        if (pointers.length === 2) {
+            // Support pinch and zoom
+            const diffX = Math.abs(pointers[0].clientX - pointers[1].clientX);
+            const diffY = Math.abs(pointers[0].clientY - pointers[1].clientY);
+            const diff = Math.sqrt(diffX * diffX + diffY * diffY);
+            if (pointerDiff > 0) {
+                const delta = pointerDiff - diff;
+                scale += delta * -0.001;
+                scale = Math.min(Math.max(0.1, scale), 10);
+                notesElement.style.transform = `scale(${scale})`;
+            }
+            pointerDiff = diff;
+        }
+        return;
+    }
 
     if (sourceElement === undefined) {
         if (isMove) {
@@ -67,12 +97,24 @@ const pointerMove = e => {
 
 const pointerUp = e => {
     isMove = false;
+    for (let i = 0; i < pointers.length; i++) {
+        const p = pointers[i];
+        if (p.pointerId == e.pointerId) {
+            pointers.splice(i, 1);
+            break;
+        }
+    }
     sourceElement = undefined;
     e.stopPropagation();
 }
 
 window.addEventListener("pointermove", pointerMove, { passive: true });
 window.addEventListener("pointerup", pointerUp);
+window.addEventListener("wheel", e => {
+    scale += e.deltaY * -0.001;
+    scale = Math.min(Math.max(0.1, scale), 10);
+    notesElement.style.transform = `scale(${scale})`;
+});
 
 let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
@@ -126,6 +168,8 @@ window.addEventListener('blur', () => {
 window.addEventListener('pointerdown', e => {
     deSelectNotes();
 
+    pointerDiff = 0;
+    pointers.push(e);
     currentX = e.clientX;
     currentY = e.clientY;
     isMove = true;
@@ -194,6 +238,10 @@ document.addEventListener('keyup', (e) => {
         for (let i = 0; i < elements.length; i++) {
             elements[i].classList.add("selected");
         }
+    }
+    else if (e.key === "0" && e.ctrlKey /* Ctrl-0 to reset zoom */) {
+        scale = 1.0;
+        notesElement.style.transform = `scale(${scale})`;
     }
     else if (!e.altKey) {
         console.log(e);
