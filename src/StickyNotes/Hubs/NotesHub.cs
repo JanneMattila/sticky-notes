@@ -1,42 +1,52 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using StickyNotes.Data;
 using StickyNotes.Interfaces;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StickyNotes.Hubs;
 
 public class NotesHub : Hub
 {
-    private static ConcurrentDictionary<string, ConcurrentDictionary<string, StickyNote>> NotesRepository = new();
+    protected readonly ILogger _log;
+    protected readonly INotesContext _context;
+
+    public NotesHub(ILogger<NotesHub> log, INotesContext context)
+    {
+        _log = log;
+        _context = context;
+    }
 
     public async Task Join(string id)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, id);
-        if (NotesRepository.ContainsKey(id))
+        var notes = new List<StickyNote>();
+        await foreach (var entity in _context.GetAllAsync<NotesEntity>(TableNames.Notes, id))
         {
-            var list = NotesRepository[id].Select(o => o.Value).ToList();
-            await Clients.Caller.SendAsync("AllNotes", list);
+            var note = JsonSerializer.Deserialize<StickyNote>(entity.Data);
+            if (note != null)
+            {
+                notes.Add(note);
+            }
+        }
+
+        if (notes.Any())
+        {
+            await Clients.Caller.SendAsync("AllNotes", notes);
         }
     }
 
     public async Task UpdateNote(string id, StickyNote note)
     {
-        if (!NotesRepository.ContainsKey(id))
+        var data = JsonSerializer.Serialize(note);
+        await _context.UpsertAsync(TableNames.Notes, new NotesEntity()
         {
-            NotesRepository.TryAdd(id, new ConcurrentDictionary<string, StickyNote>());
-        }
-
-        NotesRepository[id].AddOrUpdate(note.ID, note, (updateID, updateNote) =>
-        {
-            updateNote.Text = note.Text;
-            updateNote.Width = note.Width;
-            updateNote.Height = note.Height;
-            updateNote.Color = note.Color;
-            updateNote.Position.X = note.Position.X;
-            updateNote.Position.Y = note.Position.Y;
-            updateNote.Position.Rotation = note.Position.Rotation;
-            return updateNote;
+            PartitionKey = id,
+            RowKey = note.ID,
+            Data = data
         });
         await Clients.OthersInGroup(id).SendAsync("UpdateNote", note);
     }

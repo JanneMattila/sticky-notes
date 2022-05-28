@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StickyNotes.Data;
 using StickyNotes.Hubs;
 
 namespace StickyNotes;
@@ -20,6 +21,12 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddOptions<NotesContextOptions>()
+            .Configure<IConfiguration>((settings, configuration) =>
+            {
+                settings.StorageConnectionString = configuration["Storage"];
+            });
+        services.AddSingleton<INotesContext, NotesContext>();
         services.AddSignalR();
         services
             .AddControllersWithViews()
