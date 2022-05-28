@@ -29,7 +29,7 @@
     box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
     overflow: hidden;
     word-wrap: break-word;
-    font-size: 5vmin;
+    font-size: 24px;
     display: block;
     /* Prevent text selection */
     -webkit-touch-callout: none;
