@@ -147,7 +147,7 @@ const pointerMove = e => {
         sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
     }
 
-    if (new Date() - updateSend > 20) {
+    if (new Date() - updateSend > 80) {
         updateNoteMove(sourceElement);
         updateSend = new Date();
     }
@@ -280,6 +280,7 @@ const showNoteDialog = () => {
         return;
     }
 
+    isModalOpen = true;
     const modalElement = document.getElementById("colorModal");
     const noteTextElement = document.getElementById("noteText");
     const noteColorSelectElement = document.getElementById("noteColor");
@@ -289,24 +290,19 @@ const showNoteDialog = () => {
     noteColorSelectElement.value = "lightyellow";
 
     const updateNoteSaveButtonClick = e => {
-        modal.hide();
 
         if (noteTextElement.value.length !== 0) {
             addNote(noteTextElement.value, noteColorSelectElement.value);
             noteTextElement.value = "";
             noteColorSelectElement.value = "lightyellow";
-
-            updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
-            modalElement.addEventListener("shown.bs.modal", dialogShown);
-            modalElement.addEventListener("hidden.bs.modal", dialogClosed);
-
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
+            noteTextElement.focus();
+        }
+        else {
+            modal.hide();
         }
     }
 
     const dialogShown = e => {
-        isModalOpen = true;
         noteTextElement.focus();
     }
 
