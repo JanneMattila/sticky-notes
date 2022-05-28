@@ -29,8 +29,36 @@ const getId = () => {
     }
     return id;
 }
-const id = getId();
+let id = getId();
 console.log(id);
+
+window.addEventListener("hashchange", e => {
+    console.log("hashchange event occured!");
+    connection.invoke("Leave", id)
+        .then(function () {
+            console.log("Leave called");
+
+            id = getId();
+            console.log(id);
+
+            const matches = document.getElementsByClassName("stickynote");
+            while (matches.length > 0) {
+                notesElement.removeChild(matches[0]);
+            }
+            selectedElement = selectedElement = undefined;
+            pointers = [];
+            scale = 1;
+            isMove = false;
+            isResize = false;
+            isModalOpen = false;
+
+            connection.invoke("Join", id);
+        })
+        .catch(function (err) {
+            console.log("Leave error");
+            console.log(err);
+        });
+});
 
 const deSelectNotes = () => {
     const matches = document.getElementsByClassName("selected");
@@ -396,6 +424,16 @@ connection.on("UpdateNote", note => {
     }
 });
 
+connection.on("DeleteNote", noteId => {
+    console.log("DeleteNote:");
+    console.log(noteId);
+
+    const element = document.getElementById(noteId);
+    if (element) {
+        notesElement.removeChild(element);
+    }
+});
+
 function showHelp() {
     document.getElementById('helpOpen').style.display = 'none';
     document.getElementById('helpClose').style.display = '';
@@ -418,6 +456,14 @@ document.addEventListener('keyup', (e) => {
     else if (e.key === "Backspace" || e.key === "Delete") {
         const matches = document.getElementsByClassName("selected");
         while (matches.length > 0) {
+            connection.invoke("DeleteNote", id, matches[0].id)
+                .then(function () {
+                    console.log("DeleteNote called");
+                })
+                .catch(function (err) {
+                    console.log("DeleteNote error");
+                    console.log(err);
+                });
             notesElement.removeChild(matches[0]);
         }
         selectedElement = undefined;

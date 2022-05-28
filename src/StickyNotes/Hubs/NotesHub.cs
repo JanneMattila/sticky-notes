@@ -39,6 +39,11 @@ public class NotesHub : Hub
         }
     }
 
+    public async Task Leave(string id)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, id);
+    }
+
     public async Task UpdateNote(string id, StickyNote note)
     {
         var data = JsonSerializer.Serialize(note);
@@ -49,5 +54,16 @@ public class NotesHub : Hub
             Data = data
         });
         await Clients.OthersInGroup(id).SendAsync("UpdateNote", note);
+    }
+
+
+    public async Task DeleteNote(string id, string noteID)
+    {
+        await _context.DeleteAsync(TableNames.Notes, new NotesEntity()
+        {
+            PartitionKey = id,
+            RowKey = noteID
+        });
+        await Clients.OthersInGroup(id).SendAsync("DeleteNote", noteID);
     }
 }
