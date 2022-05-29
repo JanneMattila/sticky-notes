@@ -518,8 +518,24 @@ connection.on("AllNotes", notes => {
         else if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
     }
 
-    coordinateAdjustX = minX - 10;
-    coordinateAdjustY = minY - 10;
+    const deltaX = Math.abs(maxX - minX - 20);
+    const deltaY = Math.abs(maxY - minY - 20);
+
+    const scaleX = document.documentElement.clientWidth / deltaX;
+    const scaleY = document.documentElement.clientHeight / deltaY;
+
+    if (scaleX < 1 && scaleY < 1) {
+        // We must scale to fit the screen
+        scale = Math.min(scaleX, scaleY);
+        coordinateAdjustX = minX - 10;
+        coordinateAdjustY = minY - 10;
+    }
+    else {
+        // No need to scale but let's center
+        scale = 1.0;
+        coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
+        coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
+    }
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
@@ -532,14 +548,6 @@ connection.on("AllNotes", notes => {
         notesElement.insertBefore(element, notesElement.firstChild);
     }
 
-    const deltaX = Math.abs(maxX - minX - 20);
-    const deltaY = Math.abs(maxY - minY - 20);
-
-    const scaleX = document.documentElement.clientWidth / deltaX;
-    const scaleY = document.documentElement.clientHeight / deltaY;
-
-    scale = Math.min(scaleX, scaleY);
-    console.log(scale);
     notesElement.style.transform = `scale(${scale})`;
 });
 
