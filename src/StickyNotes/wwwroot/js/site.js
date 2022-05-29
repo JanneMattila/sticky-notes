@@ -84,11 +84,13 @@ const pointerDown = e => {
 }
 
 const updateNoteMove = (element) => {
-    const noteX = Math.floor(element.style.top.replace("px", ""));
-    const noteY = Math.floor(element.style.left.replace("px", ""));
+    const noteX = Math.floor(element.style.left.replace("px", ""));
+    const noteY = Math.floor(element.style.top.replace("px", ""));
     const noteWidth = Math.floor(element.style.width.replace("px", ""));
     const noteHeight = Math.floor(element.style.height.replace("px", ""));
     const noteRotation = Math.floor(element.style.transform.replace("rotateZ(", "").replace("deg)", ""));
+
+    console.log(`${noteX},${noteY}`);
 
     let note = {
         id: element.id,
@@ -151,8 +153,8 @@ const pointerMove = e => {
             const notes = document.getElementsByClassName("stickynote");
             for (let i = 0; i < notes.length; i++) {
                 const element = notes[i];
-                element.style.top = `${element.offsetTop - endY}px`;
                 element.style.left = `${element.offsetLeft - endX}px`;
+                element.style.top = `${element.offsetTop - endY}px`;
             }
         }
         return;
@@ -171,8 +173,8 @@ const pointerMove = e => {
         sourceElement.style.height = `${height - endY}px`;
     }
     else {
-        sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
         sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
+        sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
     }
 
     if (new Date() - updateSend > 80) {
@@ -257,8 +259,8 @@ const createOrUpdateNoteElement = (element, note) => {
     element.innerText = note.text;
     element.className = "stickynote";
     element.style.backgroundColor = note.color;
-    element.style.top = `${note.position.x}px`;
-    element.style.left = `${note.position.y}px`;
+    element.style.left = `${note.position.x}px`;
+    element.style.top = `${note.position.y}px`;
     element.style.transform = `rotateZ(${note.position.rotation}deg)`;
     element.style.width = `${note.width}px`;
     element.style.height = `${note.height}px`;
@@ -503,12 +505,37 @@ connection.start()
 connection.on("AllNotes", notes => {
     console.log("Notes:");
     console.log(notes);
+    deleteAllNotesByClassFilter("stickynote");
+    let minX = 9999999999, maxX = -9999999999, minY = 9999999999, maxY = -9999999999;
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
+
+        if (note.position.x < minX) minX = note.position.x;
+        else if (note.position.x + note.width > maxX) maxX = note.position.x + note.width;
+
+        if (note.position.y < minY) minY = note.position.y;
+        else if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
+    }
+
+    for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+
+        note.position.x = note.position.x - minX + 10;
+        note.position.y = note.position.y - minY + 10;
+
         const element = document.createElement('div');
         createOrUpdateNoteElement(element, note);
         notesElement.insertBefore(element, notesElement.firstChild);
     }
+
+    const deltaX = Math.abs(maxX - minX - 20);
+    const deltaY = Math.abs(maxY - minY - 20);
+
+    const scaleX = document.documentElement.clientWidth / deltaX;
+    const scaleY = document.documentElement.clientHeight / deltaY;
+
+    scale = Math.min(scaleX, scaleY);
+    notesElement.style.transform = `scale(${scale})`;
 });
 
 connection.on("UpdateNote", note => {
