@@ -214,46 +214,45 @@ let connection = new signalR.HubConnectionBuilder()
     .withHubProtocol(protocol)
     .build();
 
+const editNoteMenu = (element, note) => {
+    const modalElement = document.getElementById("colorModal");
+    const noteTextElement = document.getElementById("noteText");
+    const noteColorSelectElement = document.getElementById("noteColor");
+    const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
+
+    const updateNoteSaveButtonClick = e => {
+        modal.hide();
+
+        note.text = element.innerText = noteTextElement.value;
+        note.color = element.style.backgroundColor = noteColorSelectElement.value;
+        connection.invoke("UpdateNote", id, note);
+    }
+
+    const dialogShown = e => {
+        isModalOpen = true;
+        noteTextElement.focus();
+    }
+
+    const dialogClosed = e => {
+        isModalOpen = false;
+
+        updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
+        modalElement.removeEventListener("shown.bs.modal", dialogShown);
+        modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+    }
+
+    updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
+    modalElement.addEventListener("shown.bs.modal", dialogShown);
+    modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+    noteTextElement.value = note.text;
+    noteColorSelectElement.value = note.color;
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+};
+
 const createOrUpdateNoteElement = (element, note) => {
-
-    const editNoteMenu = e => {
-        const modalElement = document.getElementById("colorModal");
-        const noteTextElement = document.getElementById("noteText");
-        const noteColorSelectElement = document.getElementById("noteColor");
-        const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
-
-        const updateNoteSaveButtonClick = e => {
-            modal.hide();
-
-            note.text = element.innerText = noteTextElement.value;
-            note.color = element.style.backgroundColor = noteColorSelectElement.value;
-            connection.invoke("UpdateNote", id, note);
-        }
-
-        const dialogShown = e => {
-            isModalOpen = true;
-            noteTextElement.focus();
-        }
-
-        const dialogClosed = e => {
-            isModalOpen = false;
-
-            updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
-            modalElement.removeEventListener("shown.bs.modal", dialogShown);
-            modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
-        }
-
-        updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
-        modalElement.addEventListener("shown.bs.modal", dialogShown);
-        modalElement.addEventListener("hidden.bs.modal", dialogClosed);
-
-        noteTextElement.value = note.text;
-        noteColorSelectElement.value = note.color;
-
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-    };
-
     element.id = note.id;
     element.innerText = note.text;
     element.className = "stickynote";
@@ -266,8 +265,7 @@ const createOrUpdateNoteElement = (element, note) => {
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
         pointers = [];
-
-        editNoteMenu();
+        editNoteMenu(element, note);
     });
     element.addEventListener("contextmenu", e => {
         pointers = [];
@@ -275,7 +273,51 @@ const createOrUpdateNoteElement = (element, note) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const modal = new bootstrap.Modal("#noteMenuModal");
+        isModalOpen = true;
+
+        const modalElement = document.getElementById("noteMenuModal");
+        const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
+        const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
+
+        let newDialogOpened = false;
+        const menuEditNoteButtonClick = e => {
+            modal.hide();
+
+            newDialogOpened = true;
+            isModalOpen = false;
+            editNoteMenu(element, note);
+        }
+        const menuDeleteNoteButtonClick = e => {
+            modal.hide();
+
+            console.log(note.id);
+            if (confirm("Do you really want to delete this note?")) {
+                connection.invoke("DeleteNote", id, note.id)
+                    .then(function () {
+                        console.log("DeleteNote called");
+                    })
+                    .catch(function (err) {
+                        console.log("DeleteNote error");
+                        console.log(err);
+                    });
+                notesElement.removeChild(element);
+            }
+        }
+
+        const dialogClosed = e => {
+            if (!newDialogOpened) {
+                isModalOpen = false;
+            }
+            noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
+            noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
+            modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+        }
+
+        noteMenuEditNoteElement.addEventListener("click", menuEditNoteButtonClick);
+        noteMenuDeleteNoteElement.addEventListener("click", menuDeleteNoteButtonClick);
+        modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+        const modal = new bootstrap.Modal(modalElement);
         modal.show();
     });
 }
