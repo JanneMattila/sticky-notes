@@ -331,8 +331,8 @@ const addNote = (noteText, color) => {
         text: noteText,
         color: color,
         position: {
-            x: 100,
-            y: 100,
+            x: 100 + coordinateAdjustX,
+            y: 100 + coordinateAdjustY,
             rotation: Math.floor(Math.random() * 8) - 4
         },
         width: 100,
@@ -512,23 +512,25 @@ connection.on("AllNotes", notes => {
         const note = notes[i];
 
         if (note.position.x < minX) minX = note.position.x;
-        else if (note.position.x + note.width > maxX) maxX = note.position.x + note.width;
+        if (note.position.x + note.width > maxX) maxX = note.position.x + note.width;
 
         if (note.position.y < minY) minY = note.position.y;
-        else if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
+        if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
     }
 
-    const deltaX = Math.abs(maxX - minX - 20);
-    const deltaY = Math.abs(maxY - minY - 20);
+    const deltaX = Math.abs(maxX - minX);
+    const deltaY = Math.abs(maxY - minY);
+
+    console.log(`${minX},${maxX} - ${minY},${maxY}`);
 
     const scaleX = document.documentElement.clientWidth / deltaX;
     const scaleY = document.documentElement.clientHeight / deltaY;
 
-    if (scaleX < 1 && scaleY < 1) {
+    if (scaleX < 1 || scaleY < 1) {
         // We must scale to fit the screen
         scale = Math.min(scaleX, scaleY);
-        coordinateAdjustX = minX - 10;
-        coordinateAdjustY = minY - 10;
+        coordinateAdjustX = minX;
+        coordinateAdjustY = minY;
     }
     else {
         // No need to scale but let's center
@@ -536,6 +538,8 @@ connection.on("AllNotes", notes => {
         coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
         coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
     }
+
+    console.log(`${coordinateAdjustX},${coordinateAdjustY}`);
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
