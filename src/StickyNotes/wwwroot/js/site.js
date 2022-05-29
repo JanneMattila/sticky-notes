@@ -215,19 +215,8 @@ let connection = new signalR.HubConnectionBuilder()
     .build();
 
 const createOrUpdateNoteElement = (element, note) => {
-    element.id = note.id;
-    element.innerText = note.text;
-    element.className = "stickynote";
-    element.style.backgroundColor = note.color;
-    element.style.top = `${note.position.x}px`;
-    element.style.left = `${note.position.y}px`;
-    element.style.transform = `rotateZ(${note.position.rotation}deg)`;
-    element.style.width = `${note.width}px`;
-    element.style.height = `${note.height}px`;
-    element.addEventListener("pointerdown", pointerDown, { passive: true });
-    element.addEventListener("dblclick", e => {
-        pointers = [];
 
+    const editNoteMenu = e => {
         const modalElement = document.getElementById("colorModal");
         const noteTextElement = document.getElementById("noteText");
         const noteColorSelectElement = document.getElementById("noteColor");
@@ -263,12 +252,31 @@ const createOrUpdateNoteElement = (element, note) => {
 
         const modal = new bootstrap.Modal(modalElement);
         modal.show();
+    };
+
+    element.id = note.id;
+    element.innerText = note.text;
+    element.className = "stickynote";
+    element.style.backgroundColor = note.color;
+    element.style.top = `${note.position.x}px`;
+    element.style.left = `${note.position.y}px`;
+    element.style.transform = `rotateZ(${note.position.rotation}deg)`;
+    element.style.width = `${note.width}px`;
+    element.style.height = `${note.height}px`;
+    element.addEventListener("pointerdown", pointerDown, { passive: true });
+    element.addEventListener("dblclick", e => {
+        pointers = [];
+
+        editNoteMenu();
     });
     element.addEventListener("contextmenu", e => {
         pointers = [];
 
         e.preventDefault();
         e.stopPropagation();
+
+        const modal = new bootstrap.Modal("#noteMenuModal");
+        modal.show();
     });
 }
 
@@ -299,6 +307,22 @@ const addNote = (noteText, color) => {
             console.log("UpdateNote error");
             console.log(err);
         });
+}
+
+const deleteAllNotesByClassFilter = filter => {
+    const matches = document.getElementsByClassName(filter);
+    while (matches.length > 0) {
+        connection.invoke("DeleteNote", id, matches[0].id)
+            .then(function () {
+                console.log("DeleteNote called");
+            })
+            .catch(function (err) {
+                console.log("DeleteNote error");
+                console.log(err);
+            });
+        notesElement.removeChild(matches[0]);
+    }
+    selectedElement = undefined;
 }
 
 const showNoteDialog = () => {
@@ -370,7 +394,43 @@ window.addEventListener('contextmenu', e => {
     e.preventDefault();
 
     if (sourceElement === undefined) {
-        showNoteDialog();
+        isModalOpen = true;
+
+        const modalElement = document.getElementById("menuModal");
+        const menuAddNotesElement = document.getElementById("menuAddNotes");
+        const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
+
+        let newDialogOpened = false;
+        const menuAddNotesButtonClick = e => {
+            modal.hide();
+
+            newDialogOpened = true;
+            isModalOpen = false;
+            showNoteDialog();
+        }
+        const menuRemoveAllNotesButtonClick = e => {
+            modal.hide();
+
+            if (confirm("Do you really want to delete all notes?")) {
+                deleteAllNotesByClassFilter("stickynote");
+            }
+        }
+
+        const dialogClosed = e => {
+            if (!newDialogOpened) {
+                isModalOpen = false;
+            }
+            menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
+            menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
+            modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+        }
+
+        menuAddNotesElement.addEventListener("click", menuAddNotesButtonClick);
+        menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
+        modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
     }
 });
 
@@ -434,18 +494,6 @@ connection.on("DeleteNote", noteId => {
     }
 });
 
-function showHelp() {
-    document.getElementById('helpOpen').style.display = 'none';
-    document.getElementById('helpClose').style.display = '';
-    document.getElementById('help').style.display = '';
-}
-
-function hideHelp() {
-    document.getElementById('helpOpen').style.display = '';
-    document.getElementById('helpClose').style.display = 'none';
-    document.getElementById('help').style.display = 'none';
-}
-
 document.addEventListener('keyup', (e) => {
     if (e.key === "Escape") {
         deSelectNotes();
@@ -454,19 +502,7 @@ document.addEventListener('keyup', (e) => {
     else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab") {
     }
     else if (e.key === "Backspace" || e.key === "Delete") {
-        const matches = document.getElementsByClassName("selected");
-        while (matches.length > 0) {
-            connection.invoke("DeleteNote", id, matches[0].id)
-                .then(function () {
-                    console.log("DeleteNote called");
-                })
-                .catch(function (err) {
-                    console.log("DeleteNote error");
-                    console.log(err);
-                });
-            notesElement.removeChild(matches[0]);
-        }
-        selectedElement = undefined;
+        deleteAllNotesByClassFilter("selected");
     }
     else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
         deSelectNotes();

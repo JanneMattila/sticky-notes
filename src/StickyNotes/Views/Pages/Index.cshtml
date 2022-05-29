@@ -1,4 +1,4 @@
-﻿<div class="modal fade noTextSelect" id="colorModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+﻿<div class="modal fade noTextSelect" id="colorModal" tabindex="-1" aria-labelledby="colorodalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -21,6 +21,52 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="updateNoteSaveButton">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade noTextSelect" id="noteMenuModal" tabindex="-1" aria-labelledby="noteContextMenuModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="menuModalLabel">Note menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-success" type="button">Edit note</button>
+                  <hr/>
+                  <button class="btn  btn-warning" type="button">Delete note</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade noTextSelect" id="menuModal" tabindex="-1" aria-labelledby="contextMenuModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="menuModalLabel">Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-success" type="button" id="menuAddNotes">Add notes</button>
+                  <hr/>
+                  <button class="btn btn-secondary" type="button"  id="menuZoomOut" disabled>Zoom out</button>
+                  <hr/>
+                  <button class="btn btn-secondary" type="button"  id="menuStartNewSession" disabled>Start new session</button>
+                  <hr/>
+                  <button class="btn btn-danger" type="button" id="menuRemoveAllNotes">Remove all notes</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
