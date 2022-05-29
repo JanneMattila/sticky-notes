@@ -10,6 +10,7 @@ let selectedElement = undefined;
 let pointers = new Array();
 let pointerDiff = 0;
 let updateSend = new Date();
+let coordinateAdjustX = 0, coordinateAdjustY = 0;
 
 const generateId = () => {
     try {
@@ -51,6 +52,7 @@ window.addEventListener("hashchange", e => {
             isMove = false;
             isResize = false;
             isModalOpen = false;
+            coordinateAdjustX = coordinateAdjustY = 0;
 
             connection.invoke("Join", id);
         })
@@ -70,8 +72,8 @@ const deSelectNotes = () => {
 const pointerDown = e => {
 
     pointers.push(e);
-    currentX = e.clientX;
-    currentY = e.clientY;
+    currentX = e.clientX / scale;
+    currentY = e.clientY / scale;
 
     const width = e.srcElement.offsetWidth;
     const height = e.srcElement.offsetHeight;
@@ -97,14 +99,15 @@ const updateNoteMove = (element) => {
         text: element.innerText,
         color: element.style.backgroundColor,
         position: {
-            x: noteX,
-            y: noteY,
+            x: noteX + coordinateAdjustX,
+            y: noteY + coordinateAdjustY,
             rotation: noteRotation
         },
         width: noteWidth,
         height: noteHeight
     }
 
+    console.log(note);
     connection.invoke("UpdateNote", id, note)
         .then(function () {
             console.log("updateNoteMove called");
@@ -117,6 +120,9 @@ const updateNoteMove = (element) => {
 
 const pointerMove = e => {
     e.stopPropagation();
+
+    const clientX = e.clientX / scale;
+    const clientY = e.clientY / scale;
 
     for (let i = 0; i < pointers.length; i++) {
         if (pointers[i].pointerId == e.pointerId) {
@@ -143,13 +149,13 @@ const pointerMove = e => {
         return;
     }
 
+    endX = currentX - clientX;
+    endY = currentY - clientY;
+    currentX = clientX;
+    currentY = clientY;
+
     if (sourceElement === undefined) {
         if (isMove) {
-            endX = currentX - e.clientX;
-            endY = currentY - e.clientY;
-            currentX = e.clientX;;
-            currentY = e.clientY;
-
             const notes = document.getElementsByClassName("stickynote");
             for (let i = 0; i < notes.length; i++) {
                 const element = notes[i];
@@ -159,11 +165,6 @@ const pointerMove = e => {
         }
         return;
     }
-
-    endX = currentX - e.clientX;
-    endY = currentY - e.clientY;
-    currentX = e.clientX;;
-    currentY = e.clientY;
 
     if (isResize) {
         const width = Math.floor(sourceElement.style.width.replace("px", ""));
@@ -429,8 +430,8 @@ window.addEventListener('pointerdown', e => {
 
     pointerDiff = 0;
     pointers.push(e);
-    currentX = e.clientX;
-    currentY = e.clientY;
+    currentX = e.clientX / scale;
+    currentY = e.clientY / scale;
     isMove = true;
 });
 
@@ -517,11 +518,14 @@ connection.on("AllNotes", notes => {
         else if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
     }
 
+    coordinateAdjustX = minX - 10;
+    coordinateAdjustY = minY - 10;
+
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
 
-        note.position.x = note.position.x - minX + 10;
-        note.position.y = note.position.y - minY + 10;
+        note.position.x -= coordinateAdjustX;
+        note.position.y -= coordinateAdjustY;
 
         const element = document.createElement('div');
         createOrUpdateNoteElement(element, note);
@@ -535,12 +539,16 @@ connection.on("AllNotes", notes => {
     const scaleY = document.documentElement.clientHeight / deltaY;
 
     scale = Math.min(scaleX, scaleY);
+    console.log(scale);
     notesElement.style.transform = `scale(${scale})`;
 });
 
 connection.on("UpdateNote", note => {
     console.log("UpdateNote:");
     console.log(note);
+
+    note.position.x -= coordinateAdjustX;
+    note.position.y -= coordinateAdjustY;
 
     let element = document.getElementById(note.id);
     if (element === undefined || element == null) {
