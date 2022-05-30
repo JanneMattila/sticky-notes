@@ -515,9 +515,7 @@ connection.start()
         addMessage(err);
     });
 
-connection.on("AllNotes", notes => {
-    console.log("Notes:");
-    console.log(notes);
+const zoomOut = notes => {
     deleteAllNotesByClassFilter("stickynote");
     let minX = 9999999999, maxX = -9999999999, minY = 9999999999, maxY = -9999999999;
     for (let i = 0; i < notes.length; i++) {
@@ -538,25 +536,25 @@ connection.on("AllNotes", notes => {
     const scaleX = document.documentElement.clientWidth / deltaX;
     const scaleY = document.documentElement.clientHeight / deltaY;
 
-    if (scaleX < 1 || scaleY < 1) {
+    if (scaleX <= 1 && scaleY <= 1) {
         // We must scale both axes to fit the screen
         console.log("scale both axes");
         scale = Math.min(scaleX, scaleY);
         coordinateAdjustX = minX - 10;
         coordinateAdjustY = minY - 10;
     }
-    //else if (scaleX < 1 && scaleX < scaleY) {
-    //    console.log("scale x axes");
-    //    scale = scaleX;
-    //    coordinateAdjustX = minX - 10;
-    //    coordinateAdjustY = 0;
-    //}
-    //else if (scaleY < 1 && scaleY < scaleX) {
-    //    console.log("scale y axes");
-    //    scale = scaleY;
-    //    coordinateAdjustX = 0;
-    //    coordinateAdjustY = minY - 10;
-    //}
+    else if (scaleX < 1 && scaleX < scaleY) {
+        console.log("scale x axes");
+        scale = scaleX;
+        coordinateAdjustX = scaleX * minX - 10;
+        coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
+    }
+    else if (scaleY < 1 && scaleY < scaleX) {
+        console.log("scale y axes");
+        scale = scaleY;
+        coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
+        coordinateAdjustY = scaleY * minY - 10;
+    }
     else {
         // No need to scale but let's center
         console.log("no scale required, centering");
@@ -579,6 +577,13 @@ connection.on("AllNotes", notes => {
     }
 
     notesElement.style.transform = `scale(${scale})`;
+}
+
+connection.on("AllNotes", notes => {
+    console.log("Notes:");
+    console.log(notes);
+
+    zoomOut(notes);
 });
 
 connection.on("UpdateNote", note => {
