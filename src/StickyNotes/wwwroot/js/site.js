@@ -518,8 +518,8 @@ connection.on("AllNotes", notes => {
         if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
     }
 
-    const deltaX = Math.abs(maxX - minX);
-    const deltaY = Math.abs(maxY - minY);
+    const deltaX = Math.abs(maxX - minX + 20);
+    const deltaY = Math.abs(maxY - minY + 20);
 
     console.log(`${minX},${maxX} - ${minY},${maxY}`);
 
@@ -527,13 +527,27 @@ connection.on("AllNotes", notes => {
     const scaleY = document.documentElement.clientHeight / deltaY;
 
     if (scaleX < 1 || scaleY < 1) {
-        // We must scale to fit the screen
+        // We must scale both axes to fit the screen
+        console.log("scale both axes");
         scale = Math.min(scaleX, scaleY);
-        coordinateAdjustX = minX;
-        coordinateAdjustY = minY;
+        coordinateAdjustX = minX - 10;
+        coordinateAdjustY = minY - 10;
     }
+    //else if (scaleX < 1 && scaleX < scaleY) {
+    //    console.log("scale x axes");
+    //    scale = scaleX;
+    //    coordinateAdjustX = minX - 10;
+    //    coordinateAdjustY = 0;
+    //}
+    //else if (scaleY < 1 && scaleY < scaleX) {
+    //    console.log("scale y axes");
+    //    scale = scaleY;
+    //    coordinateAdjustX = 0;
+    //    coordinateAdjustY = minY - 10;
+    //}
     else {
         // No need to scale but let's center
+        console.log("no scale required, centering");
         scale = 1.0;
         coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
         coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
