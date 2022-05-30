@@ -110,7 +110,7 @@ const convertElementToNote = (element) => {
     };
 }
 
-const updateNoteMove = (element) => {
+const updateNoteElementToServer = (element) => {
     let note = convertElementToNote(element);
     connection.invoke("UpdateNote", id, note)
         .then(function () {
@@ -161,6 +161,8 @@ const pointerMove = e => {
     if (sourceElement === undefined) {
         if (isMove) {
             const notes = document.getElementsByClassName("stickynote");
+            coordinateAdjustX += endX;
+            coordinateAdjustY += endY;
             for (let i = 0; i < notes.length; i++) {
                 const element = notes[i];
                 element.style.left = `${element.offsetLeft - endX}px`;
@@ -183,7 +185,7 @@ const pointerMove = e => {
     }
 
     if (new Date() - updateSend > 80) {
-        updateNoteMove(sourceElement);
+        updateNoteElementToServer(sourceElement);
         updateSend = new Date();
     }
 }
@@ -199,7 +201,7 @@ const pointerUp = e => {
     }
 
     if (sourceElement !== undefined) {
-        updateNoteMove(sourceElement);
+        updateNoteElementToServer(sourceElement);
     }
     sourceElement = undefined;
     e.stopPropagation();
@@ -232,7 +234,7 @@ const editNoteMenu = (element, note) => {
 
         note.text = element.innerText = noteTextElement.value;
         note.color = element.style.backgroundColor = noteColorSelectElement.value;
-        connection.invoke("UpdateNote", id, note);
+        updateNoteElementToServer(element);
     }
 
     const dialogShown = e => {
@@ -348,16 +350,7 @@ const addNote = (noteText, color) => {
     createOrUpdateNoteElement(element, note);
     notesElement.insertBefore(element, notesElement.firstChild);
 
-    console.log("Calling UpdateNote:");
-    console.log(note);
-    connection.invoke("UpdateNote", id, note)
-        .then(function () {
-            console.log("UpdateNote called");
-        })
-        .catch(function (err) {
-            console.log("UpdateNote error");
-            console.log(err);
-        });
+    updateNoteElementToServer(element);
 }
 
 const deleteAllNotesByClassFilter = filter => {
@@ -528,8 +521,8 @@ const zoomOut = notes => {
         if (note.position.y + note.height > maxY) maxY = note.position.y + note.height;
     }
 
-    const deltaX = Math.abs(maxX - minX + 20);
-    const deltaY = Math.abs(maxY - minY + 20);
+    const deltaX = Math.abs(maxX - minX) + 40;
+    const deltaY = Math.abs(maxY - minY) + 40;
 
     const scaleX = document.documentElement.clientWidth / deltaX;
     const scaleY = document.documentElement.clientHeight / deltaY;
@@ -537,14 +530,14 @@ const zoomOut = notes => {
     if (scaleX < 1 && scaleX < scaleY) {
         console.log("scale x axes: " + scaleX);
         scale = scaleX;
-        coordinateAdjustX = minX - 10 - (document.documentElement.clientWidth - deltaX * scale) / 2;
-        coordinateAdjustY = minY - 10 - (document.documentElement.clientHeight - deltaY * scale) / 2;
+        coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * scale) / 2;
+        coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * scale) / 2;
     }
     else if (scaleY < 1 && scaleY <= scaleX) {
         console.log("scale y axes: " + scaleY);
         scale = scaleY;
-        coordinateAdjustX = minX - 10 - (document.documentElement.clientWidth - deltaX * scale) / 2;
-        coordinateAdjustY = minY - 10 - (document.documentElement.clientHeight - deltaY * scale) / 2;
+        coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * scale) / 2;
+        coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * scale) / 2;
     }
     else {
         // No need to scale but let's center
