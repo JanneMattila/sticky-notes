@@ -10,6 +10,9 @@ public class Position
     [JsonPropertyName("y")]
     public double Y { get; set; }
 
+    [JsonPropertyName("z")]
+    public double Z { get; set; }
+
     [JsonPropertyName("rotation")]
     public double Rotation { get; set; }
 }

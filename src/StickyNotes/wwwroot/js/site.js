@@ -34,32 +34,34 @@ let id = getId();
 console.log(id);
 
 window.addEventListener("hashchange", e => {
-    console.log("hashchange event occured!");
-    connection.invoke("Leave", id)
-        .then(function () {
-            console.log("Leave called");
+    if (e.oldURL.indexOf("#") != -1) {
+        console.log("hashchange event occured!");
+        connection.invoke("Leave", id)
+            .then(function () {
+                console.log("Leave called");
 
-            id = getId();
-            console.log(id);
+                id = getId();
+                console.log(id);
 
-            const matches = document.getElementsByClassName("stickynote");
-            while (matches.length > 0) {
-                notesElement.removeChild(matches[0]);
-            }
-            selectedElement = selectedElement = undefined;
-            pointers = [];
-            scale = 1;
-            isMove = false;
-            isResize = false;
-            isModalOpen = false;
-            coordinateAdjustX = coordinateAdjustY = 0;
+                const matches = document.getElementsByClassName("stickynote");
+                while (matches.length > 0) {
+                    notesElement.removeChild(matches[0]);
+                }
+                selectedElement = selectedElement = undefined;
+                pointers = [];
+                scale = 1;
+                isMove = false;
+                isResize = false;
+                isModalOpen = false;
+                coordinateAdjustX = coordinateAdjustY = 0;
 
-            connection.invoke("Join", id);
-        })
-        .catch(function (err) {
-            console.log("Leave error");
-            console.log(err);
-        });
+                connection.invoke("Join", id);
+            })
+            .catch(function (err) {
+                console.log("Leave error");
+                console.log(err);
+            });
+    }
 });
 
 const deSelectNotes = () => {
@@ -88,6 +90,7 @@ const pointerDown = e => {
 const updateNoteMove = (element) => {
     const noteX = Math.floor(element.style.left.replace("px", ""));
     const noteY = Math.floor(element.style.top.replace("px", ""));
+    const noteZ = Math.floor(element.style.zIndex);
     const noteWidth = Math.floor(element.style.width.replace("px", ""));
     const noteHeight = Math.floor(element.style.height.replace("px", ""));
     const noteRotation = Math.floor(element.style.transform.replace("rotateZ(", "").replace("deg)", ""));
@@ -101,6 +104,7 @@ const updateNoteMove = (element) => {
         position: {
             x: noteX + coordinateAdjustX,
             y: noteY + coordinateAdjustY,
+            z: noteZ,
             rotation: noteRotation
         },
         width: noteWidth,
@@ -262,6 +266,7 @@ const createOrUpdateNoteElement = (element, note) => {
     element.style.backgroundColor = note.color;
     element.style.left = `${note.position.x}px`;
     element.style.top = `${note.position.y}px`;
+    element.style.zIndex = note.position.z;
     element.style.transform = `rotateZ(${note.position.rotation}deg)`;
     element.style.width = `${note.width}px`;
     element.style.height = `${note.height}px`;
@@ -331,8 +336,9 @@ const addNote = (noteText, color) => {
         text: noteText,
         color: color,
         position: {
-            x: 100 + coordinateAdjustX,
-            y: 100 + coordinateAdjustY,
+            x: 100 - coordinateAdjustX,
+            y: 100 - coordinateAdjustY,
+            z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
         width: 100,
@@ -385,11 +391,12 @@ const showNoteDialog = () => {
 
     noteTextElement.value = "";
     noteColorSelectElement.value = "lightyellow";
+    let addedNotes = [];
 
     const updateNoteSaveButtonClick = e => {
 
         if (noteTextElement.value.length !== 0) {
-            addNote(noteTextElement.value, noteColorSelectElement.value);
+            addedNotes.push({ text: noteTextElement.value, color: noteColorSelectElement.value });
             noteTextElement.value = "";
             noteColorSelectElement.value = "lightyellow";
             noteTextElement.focus();
@@ -409,6 +416,11 @@ const showNoteDialog = () => {
         updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
         modalElement.removeEventListener("shown.bs.modal", dialogShown);
         modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+
+        for (let i = 0; i < addedNotes.length; i++) {
+            const addedNote = addedNotes[i];
+            addNote(addedNote.text, addedNote.color);
+        }
     }
 
     updateNoteSaveButtonElement.addEventListener("click", updateNoteSaveButtonClick);
