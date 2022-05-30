@@ -87,7 +87,7 @@ const pointerDown = e => {
     e.stopPropagation();
 }
 
-const updateNoteMove = (element) => {
+const convertElementToNote = (element) => {
     const noteX = Math.floor(element.style.left.replace("px", ""));
     const noteY = Math.floor(element.style.top.replace("px", ""));
     const noteZ = Math.floor(element.style.zIndex);
@@ -95,9 +95,7 @@ const updateNoteMove = (element) => {
     const noteHeight = Math.floor(element.style.height.replace("px", ""));
     const noteRotation = Math.floor(element.style.transform.replace("rotateZ(", "").replace("deg)", ""));
 
-    console.log(`${noteX},${noteY}`);
-
-    let note = {
+    return {
         id: element.id,
         text: element.innerText,
         color: element.style.backgroundColor,
@@ -109,9 +107,11 @@ const updateNoteMove = (element) => {
         },
         width: noteWidth,
         height: noteHeight
-    }
+    };
+}
 
-    console.log(note);
+const updateNoteMove = (element) => {
+    let note = convertElementToNote(element);
     connection.invoke("UpdateNote", id, note)
         .then(function () {
             console.log("updateNoteMove called");
@@ -531,29 +531,20 @@ const zoomOut = notes => {
     const deltaX = Math.abs(maxX - minX + 20);
     const deltaY = Math.abs(maxY - minY + 20);
 
-    console.log(`${minX},${maxX} - ${minY},${maxY}`);
-
     const scaleX = document.documentElement.clientWidth / deltaX;
     const scaleY = document.documentElement.clientHeight / deltaY;
 
-    if (scaleX <= 1 && scaleY <= 1) {
-        // We must scale both axes to fit the screen
-        console.log("scale both axes");
-        scale = Math.min(scaleX, scaleY);
-        coordinateAdjustX = minX - 10;
-        coordinateAdjustY = minY - 10;
-    }
-    else if (scaleX < 1 && scaleX < scaleY) {
-        console.log("scale x axes");
+    if (scaleX < 1 && scaleX < scaleY) {
+        console.log("scale x axes: " + scaleX);
         scale = scaleX;
-        coordinateAdjustX = scaleX * minX - 10;
-        coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
+        coordinateAdjustX = minX - 10 - (document.documentElement.clientWidth - deltaX * scale) / 2;
+        coordinateAdjustY = minY - 10 - (document.documentElement.clientHeight - deltaY * scale) / 2;
     }
-    else if (scaleY < 1 && scaleY < scaleX) {
-        console.log("scale y axes");
+    else if (scaleY < 1 && scaleY <= scaleX) {
+        console.log("scale y axes: " + scaleY);
         scale = scaleY;
-        coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
-        coordinateAdjustY = scaleY * minY - 10;
+        coordinateAdjustX = minX - 10 - (document.documentElement.clientWidth - deltaX * scale) / 2;
+        coordinateAdjustY = minY - 10 - (document.documentElement.clientHeight - deltaY * scale) / 2;
     }
     else {
         // No need to scale but let's center
@@ -562,8 +553,6 @@ const zoomOut = notes => {
         coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
         coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
     }
-
-    console.log(`${coordinateAdjustX},${coordinateAdjustY}`);
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
