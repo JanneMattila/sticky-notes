@@ -4,7 +4,8 @@ let scale = 1;
 let isMove = false;
 let isResize = false;
 let isModalOpen = false;
-let currentX, currentY, endX, endY;
+let currentX = 100, currentY = 100;
+let endX, endY;
 let sourceElement = undefined;
 let selectedElement = undefined;
 let pointers = new Array();
@@ -72,6 +73,7 @@ const deSelectNotes = () => {
 }
 
 const pointerDown = e => {
+    if (isModalOpen) return;
 
     pointers.push(e);
     currentX = e.clientX / scale;
@@ -124,6 +126,7 @@ const updateNoteElementToServer = (element) => {
 
 const pointerMove = e => {
     e.stopPropagation();
+    if (isModalOpen) return;
 
     const clientX = e.clientX / scale;
     const clientY = e.clientY / scale;
@@ -338,8 +341,8 @@ const addNote = (noteText, color) => {
         text: noteText,
         color: color,
         position: {
-            x: 100 - coordinateAdjustX,
-            y: 100 - coordinateAdjustY,
+            x: currentX,
+            y: currentY,
             z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
@@ -431,6 +434,8 @@ window.addEventListener('blur', () => {
 });
 
 window.addEventListener('pointerdown', e => {
+    if (isModalOpen) return;
+
     deSelectNotes();
 
     pointerDiff = 0;
