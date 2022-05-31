@@ -627,3 +627,10 @@ document.addEventListener('keyup', (e) => {
         showNoteDialog();
     }
 });
+
+document.getElementById("noteText").addEventListener('keyup', (e) => {
+    if (e.key === "Enter" && e.ctrlKey) {
+        // Auto submit on Ctrl+Enter
+        document.getElementById("updateNoteSaveButton").click();
+    }
+});
