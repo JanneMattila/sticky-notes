@@ -606,7 +606,7 @@ document.addEventListener('keyup', (e) => {
         deSelectNotes();
         selectedElement = undefined;
     }
-    else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab") {
+    else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" || (e.ctrlKey && e.key === "w")) {
     }
     else if (e.key === "Backspace" || e.key === "Delete") {
         deleteAllNotesByClassFilter("selected");
