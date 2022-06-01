@@ -341,8 +341,8 @@ const addNote = (noteText, color) => {
         text: noteText,
         color: color,
         position: {
-            x: currentX,
-            y: currentY,
+            x: currentX - 100 + 200 * Math.random(),
+            y: currentY - 100 + 200 * Math.random(),
             z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
