@@ -4,6 +4,9 @@ variables:
 trigger:
 - main
 - develop
+  paths:
+    include:
+    - src
 
 name: 1.0.$(Rev:r)
 stages:
