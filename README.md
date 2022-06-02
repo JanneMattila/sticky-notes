@@ -1,7 +1,7 @@
 # Sticky Notes
 
 [![Build Status](https://dev.azure.com/jannemattila/jannemattila/_apis/build/status/JanneMattila.sticky-notes?branchName=main)](https://dev.azure.com/jannemattila/jannemattila/_build/latest?definitionId=66&branchName=main)
-[![Docker Pulls](https://img.shields.io/docker/pulls/jannemattila/catch-the-banana?style=plastic)](https://hub.docker.com/r/jannemattila/sticky-notes)
+[![Docker Pulls](https://img.shields.io/docker/pulls/jannemattila/sticky-notes?style=plastic)](https://hub.docker.com/r/jannemattila/sticky-notes)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Sticky Notes is simple but yet handy web-based planning tool mimicking

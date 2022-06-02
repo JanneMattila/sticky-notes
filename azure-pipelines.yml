@@ -2,8 +2,10 @@ variables:
   repository: 'jannemattila/sticky-notes'
 
 trigger:
-- main
-- develop
+  branches:
+    include:
+    - main
+    - develop
   paths:
     include:
     - src
