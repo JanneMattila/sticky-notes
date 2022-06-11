@@ -256,7 +256,6 @@ let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
 let connection = new signalR.HubConnectionBuilder()
     .withUrl(hubRoute)
-    .withAutomaticReconnect()
     .withHubProtocol(protocol)
     .build();
 
@@ -524,20 +523,9 @@ window.addEventListener('contextmenu', e => {
     }
 });
 
-connection.on('notes', function (msg) {
-    let data = "Date received: " + new Date().toLocaleTimeString();
-    data += "\n" + msg.body;
-    addMessage(data);
-});
-
-connection.onclose(function (e) {
-    if (e) {
-        addMessage("Connection closed with error: " + e);
-    }
-    else {
-        addMessage("Disconnected");
-        showErrorDialog();
-    }
+connection.onclose(err => {
+    console.log(`onclose: ${err}`);
+    document.location.reload();
 });
 
 connection.start()
@@ -546,7 +534,7 @@ connection.start()
         connection.invoke("Join", id);
     })
     .catch(function (err) {
-        addMessage(err);
+        console.log(err);
         showErrorDialog();
     });
 
@@ -671,3 +659,18 @@ document.getElementById("noteText").addEventListener('keyup', (e) => {
         document.getElementById("updateNoteSaveButton").click();
     }
 });
+
+// Based on documentation example:
+// https://docs.microsoft.com/en-us/aspnet/core/signalr/javascript-client?view=aspnetcore-6.0&tabs=visual-studio#bsleep
+let lockResolver;
+if (navigator && navigator.locks && navigator.locks.request) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API
+    console.log("Browser supports Web Locks API. Trying to prevent tab from sleeping.");
+    const promise = new Promise((res) => {
+        lockResolver = res;
+    });
+
+    navigator.locks.request('stickynotes', { mode: "shared" }, () => {
+        return promise;
+    });
+}
