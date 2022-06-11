@@ -92,7 +92,7 @@ const pointerDown = e => {
     deSelectNotes();
     selectedElement = sourceElement = e.srcElement;
     sourceElement.className = "stickynote selected";
-    isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.7;
+    isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.6;
     e.stopPropagation();
 }
 
