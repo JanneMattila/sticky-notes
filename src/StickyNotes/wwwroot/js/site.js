@@ -35,6 +35,8 @@ const getId = () => {
         id = generateId();
         document.location.hash = id;
     }
+
+    document.querySelector('meta[property="og:url"]').setAttribute("content", document.location.href);
     return id;
 }
 let id = getId();
