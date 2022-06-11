@@ -13,6 +13,12 @@ let pointerDiff = 0;
 let updateSend = new Date();
 let coordinateAdjustX = 0, coordinateAdjustY = 0;
 
+const showErrorDialog = () => {
+    const modalElement = document.getElementById("errorModal");
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
 const generateId = () => {
     try {
         const random = window.crypto.getRandomValues(new Uint32Array(4));
@@ -61,6 +67,7 @@ window.addEventListener("hashchange", e => {
             .catch(function (err) {
                 console.log("Leave error");
                 console.log(err);
+                showErrorDialog();
             });
     }
 });
@@ -121,6 +128,7 @@ const updateNoteElementToServer = (element) => {
         .catch(function (err) {
             console.log("updateNoteMove error");
             console.log(err);
+            showErrorDialog();
         });
 }
 
@@ -151,6 +159,32 @@ const pointerMove = e => {
                 scale = Math.min(Math.max(0.1, scale), 10);
                 notesElement.style.transform = `scale(${scale})`;
             }
+            //else {
+            //    console.log("TODO: Calculate center position");
+            //    console.log({ p1X: pointers[0].clientX, p1Y: pointers[0].clientY });
+            //    console.log({ p2X: pointers[1].clientX, p2Y: pointers[1].clientY });
+
+            //    const centerX = pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
+            //    const centerY = pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
+            //    console.log({ centerX, centerY, coordinateAdjustX, coordinateAdjustY });
+
+            //    const elements = document.getElementsByClassName("stickynote");
+            //    for (let i = 0; i < elements.length; i++) {
+            //        const element = elements[i];
+            //        let noteX = Math.floor(element.style.left.replace("px", ""));
+            //        let noteY = Math.floor(element.style.top.replace("px", ""));
+            //        console.log({ noteX, noteY });
+            //        noteX = centerX - noteX + coordinateAdjustX;
+            //        noteY = centerY - noteY + coordinateAdjustY;
+            //        console.log({ noteX, noteY });
+
+            //        //element.style.left = `${noteX}px`;
+            //        //element.style.top = `${noteY}px`;
+            //    }
+
+            //    coordinateAdjustX = -centerX;
+            //    coordinateAdjustY = -centerY;
+            //}
             pointerDiff = diff;
         }
         return;
@@ -366,6 +400,7 @@ const deleteAllNotesByClassFilter = filter => {
             .catch(function (err) {
                 console.log("DeleteNote error");
                 console.log(err);
+                showErrorDialog();
             });
         notesElement.removeChild(matches[0]);
     }
@@ -501,6 +536,7 @@ connection.onclose(function (e) {
     }
     else {
         addMessage("Disconnected");
+        showErrorDialog();
     }
 });
 
@@ -511,6 +547,7 @@ connection.start()
     })
     .catch(function (err) {
         addMessage(err);
+        showErrorDialog();
     });
 
 const zoomOut = notes => {

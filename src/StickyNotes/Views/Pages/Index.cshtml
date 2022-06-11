@@ -80,6 +80,24 @@
     </div>
 </div>
 
+<div class="modal fade noTextSelect" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Whoops!</h5>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                  It seems we lost the connection. Click refresh to try again.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="document.location.reload();">Refresh</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="notes"></div>
 
 @section Scripts
