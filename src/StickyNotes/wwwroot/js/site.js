@@ -631,25 +631,28 @@ document.addEventListener('keyup', (e) => {
         deSelectNotes();
         selectedElement = undefined;
     }
-    else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" || (e.ctrlKey && e.key === "w")) {
-    }
-    else if (e.key === "Backspace" || e.key === "Delete") {
-        deleteAllNotesByClassFilter("selected");
-    }
-    else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
-        deSelectNotes();
-        const elements = document.getElementsByClassName("stickynote");
-        for (let i = 0; i < elements.length; i++) {
-            elements[i].classList.add("selected");
+    else if (!isModalOpen) {
+        if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
+            (e.ctrlKey && (e.key === "w" || e.key === "r"))) {
         }
-    }
-    else if (e.key === "0" && e.ctrlKey /* Ctrl-0 to reset zoom */) {
-        scale = 1.0;
-        notesElement.style.transform = `scale(${scale})`;
-    }
-    else if (!e.altKey) {
-        console.log(e);
-        showNoteDialog();
+        else if (e.key === "Backspace" || e.key === "Delete") {
+            deleteAllNotesByClassFilter("selected");
+        }
+        else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
+            deSelectNotes();
+            const elements = document.getElementsByClassName("stickynote");
+            for (let i = 0; i < elements.length; i++) {
+                elements[i].classList.add("selected");
+            }
+        }
+        else if (e.key === "0" && e.ctrlKey /* Ctrl-0 to reset zoom */) {
+            scale = 1.0;
+            notesElement.style.transform = `scale(${scale})`;
+        }
+        else if (!e.altKey) {
+            console.log(e);
+            showNoteDialog();
+        }
     }
 });
 
