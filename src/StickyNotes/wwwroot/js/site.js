@@ -258,6 +258,7 @@ let protocol = new signalR.JsonHubProtocol();
 let hubRoute = "Notes";
 let connection = new signalR.HubConnectionBuilder()
     .withUrl(hubRoute)
+    .withAutomaticReconnect()
     .withHubProtocol(protocol)
     .build();
 
@@ -270,8 +271,16 @@ const editNoteMenu = (element, note) => {
     const updateNoteSaveButtonClick = e => {
         modal.hide();
 
+        const isTextUpdated = noteTextElement.value !== element.innerText;
         note.text = element.innerText = noteTextElement.value;
         note.color = element.style.backgroundColor = noteColorSelectElement.value;
+        if (isTextUpdated) {
+            console.log("Re-calculate the size due to text update");
+            const size = calculateNoteSize(note.text);
+            element.style.width = `${size.width}px`;
+            element.style.height = `${size.height}px`;
+        }
+
         updateNoteElementToServer(element);
     }
 
@@ -370,7 +379,26 @@ const createOrUpdateNoteElement = (element, note) => {
     });
 }
 
+const calculateNoteSize = text => {
+    let width = 100;
+    let height = 100;
+
+    const lines = text.split(/\r\n|\r|\n/);
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let rowWidth = line.length * 16;
+        if (width < rowWidth) {
+            width = rowWidth;
+        }
+    }
+    height = Math.max(100, 32 /* row height */ * lines.length);
+
+    console.log({ lines: lines.length, height, width });
+    return { width, height };
+}
+
 const addNote = (noteText, color) => {
+    const size = calculateNoteSize(noteText);
     let note = {
         id: generateId(),
         text: noteText,
@@ -381,8 +409,8 @@ const addNote = (noteText, color) => {
             z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
-        width: 100,
-        height: 100
+        width: size.width,
+        height: size.height
     }
     let element = document.createElement('div');
     createOrUpdateNoteElement(element, note);
@@ -467,7 +495,7 @@ const showNoteDialog = () => {
 }
 
 window.addEventListener('focus', () => {
-    if (connection.state !== "Connected") {
+    if (connection.state === "Disconnected") {
         startConnection();
     }
 });

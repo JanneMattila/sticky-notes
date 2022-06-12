@@ -23,7 +23,7 @@ html, body {
 .stickynote {
     padding: 10px;
     border-radius: 5px;
-    line-height: 105%;
+    line-height: 110%;
     position: absolute;
     z-index: 100;
     background-color: lightyellow;
