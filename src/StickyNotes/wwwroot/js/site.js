@@ -391,18 +391,21 @@ const addNote = (noteText, color) => {
     updateNoteElementToServer(element);
 }
 
-const deleteAllNotesByClassFilter = filter => {
+const deleteAllNotesByClassFilter = (filter, remove) => {
     const matches = document.getElementsByClassName(filter);
     while (matches.length > 0) {
-        connection.invoke("DeleteNote", id, matches[0].id)
-            .then(function () {
-                console.log("DeleteNote called");
-            })
-            .catch(function (err) {
-                console.log("DeleteNote error");
-                console.log(err);
-                showErrorDialog();
-            });
+        if (remove) {
+            connection.invoke("DeleteNote", id, matches[0].id)
+                .then(function () {
+                    console.log("DeleteNote by filter called");
+                })
+                .catch(function (err) {
+                    console.log("DeleteNote by filter error");
+                    console.log(err);
+                    showErrorDialog();
+                });
+        }
+
         notesElement.removeChild(matches[0]);
     }
     selectedElement = undefined;
@@ -464,6 +467,9 @@ const showNoteDialog = () => {
 }
 
 window.addEventListener('focus', () => {
+    if (connection.state !== "Connected") {
+        startConnection();
+    }
 });
 
 window.addEventListener('blur', () => {
@@ -503,7 +509,7 @@ window.addEventListener('contextmenu', e => {
             modal.hide();
 
             if (confirm("Do you really want to delete all notes?")) {
-                deleteAllNotesByClassFilter("stickynote");
+                deleteAllNotesByClassFilter("stickynote", true);
             }
         }
 
@@ -527,21 +533,22 @@ window.addEventListener('contextmenu', e => {
 
 connection.onclose(err => {
     console.log(`onclose: ${err}`);
-    document.location.reload();
 });
 
-connection.start()
-    .then(function () {
-        // Connected
-        connection.invoke("Join", id);
-    })
-    .catch(function (err) {
-        console.log(err);
-        showErrorDialog();
-    });
+const startConnection = () => {
+    connection.start()
+        .then(function () {
+            // Connected
+            connection.invoke("Join", id);
+        })
+        .catch(function (err) {
+            console.log(err);
+            showErrorDialog();
+        });
+}
 
 const zoomOut = notes => {
-    deleteAllNotesByClassFilter("stickynote");
+    deleteAllNotesByClassFilter("stickynote", false);
     let minX = 9999999999, maxX = -9999999999, minY = 9999999999, maxY = -9999999999;
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
@@ -638,7 +645,7 @@ document.addEventListener('keyup', (e) => {
             (e.ctrlKey && (e.key === "w" || e.key === "r"))) {
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
-            deleteAllNotesByClassFilter("selected");
+            deleteAllNotesByClassFilter("selected", true);
         }
         else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
             deSelectNotes();
@@ -679,3 +686,5 @@ if (navigator && navigator.locks && navigator.locks.request) {
         return promise;
     });
 }
+
+startConnection();
