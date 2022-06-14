@@ -91,7 +91,12 @@ const pointerDown = e => {
     const width = e.srcElement.offsetWidth;
     const height = e.srcElement.offsetHeight;
 
-    deSelectNotes();
+    if (e.ctrlKey) {
+        // Ctrl+pointer enables multi-select
+    }
+    else {
+        deSelectNotes();
+    }
     selectedElement = sourceElement = e.srcElement;
     sourceElement.className = "stickynote selected";
     isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.6;
@@ -217,15 +222,28 @@ const pointerMove = e => {
 
         sourceElement.style.width = `${width - endX}px`;
         sourceElement.style.height = `${height - endY}px`;
+
+        if (new Date() - updateSend > 80) {
+            updateNoteElementToServer(sourceElement);
+            updateSend = new Date();
+        }
     }
     else {
-        sourceElement.style.left = `${sourceElement.offsetLeft - endX}px`;
-        sourceElement.style.top = `${sourceElement.offsetTop - endY}px`;
-    }
+        // Move all selected notes
+        const matches = document.getElementsByClassName("selected");
+        const submitUpdates = new Date() - updateSend > 80;
+        for (let i = 0; i < matches.length; i++) {
+            const selectedElements = matches[i];
+            selectedElements.style.left = `${selectedElements.offsetLeft - endX}px`;
+            selectedElements.style.top = `${selectedElements.offsetTop - endY}px`;
 
-    if (new Date() - updateSend > 80) {
-        updateNoteElementToServer(sourceElement);
-        updateSend = new Date();
+            if (submitUpdates) {
+                updateNoteElementToServer(selectedElements);
+            }
+        }
+        if (submitUpdates) {
+            updateSend = new Date();
+        }
     }
 }
 
