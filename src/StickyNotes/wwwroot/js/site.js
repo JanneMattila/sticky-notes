@@ -697,7 +697,42 @@ document.addEventListener('keyup', (e) => {
         selectedElement = undefined;
     }
     else if (!isModalOpen) {
-        if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
+        if (e.ctrlKey && e.key === "c") {
+            // Copy
+            const selectedElements = document.getElementsByClassName("selected");
+            const notes = [];
+            for (let i = 0; i < selectedElements.length; i++) {
+                const selectedlement = selectedElements[i];
+                notes.push(convertElementToNote(selectedlement));
+            }
+            sessionStorage.setItem("copy", JSON.stringify(notes));
+        }
+        else if (e.ctrlKey && e.key === "v") {
+            // Paste
+            const json = sessionStorage.getItem("copy");
+            console.log(json);
+
+            const notes = JSON.parse(json);
+            if (notes !== undefined && notes.length !== undefined) {
+                const elementsCreated = [];
+                for (let i = 0; i < notes.length; i++) {
+                    const note = notes[i];
+                    note.id = generateId();
+                    note.position.x += 100;
+                    note.position.y += 100;
+                    note.position.rotation = Math.floor(Math.random() * 8) - 4;
+                    let element = document.createElement('div');
+                    createOrUpdateNoteElement(element, note);
+                    notesElement.insertBefore(element, notesElement.firstChild);
+                    elementsCreated.push(element);
+                }
+
+                if (elementsCreated.length > 0) {
+                    updateNoteElementsToServer(elementsCreated);
+                }
+            }
+        }
+        else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
             (e.ctrlKey && (e.key === "w" || e.key === "r"))) {
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
