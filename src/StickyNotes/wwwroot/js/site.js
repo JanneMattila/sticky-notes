@@ -126,9 +126,14 @@ const convertElementToNote = (element) => {
     };
 }
 
-const updateNoteElementToServer = (element) => {
-    let note = convertElementToNote(element);
-    connection.invoke("UpdateNote", id, note)
+const updateNoteElementsToServer = (elements) => {
+    let notes = [];
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        let note = convertElementToNote(element);
+        notes.push(note);
+    }
+    connection.invoke("UpdateNotes", id, notes)
         .then(function () {
             console.log("updateNoteMove called");
         })
@@ -224,24 +229,20 @@ const pointerMove = e => {
         sourceElement.style.height = `${height - endY}px`;
 
         if (new Date() - updateSend > 80) {
-            updateNoteElementToServer(sourceElement);
+            updateNoteElementsToServer([sourceElement]);
             updateSend = new Date();
         }
     }
     else {
         // Move all selected notes
-        const matches = document.getElementsByClassName("selected");
-        const submitUpdates = new Date() - updateSend > 80;
-        for (let i = 0; i < matches.length; i++) {
-            const selectedElements = matches[i];
-            selectedElements.style.left = `${selectedElements.offsetLeft - endX}px`;
-            selectedElements.style.top = `${selectedElements.offsetTop - endY}px`;
-
-            if (submitUpdates) {
-                updateNoteElementToServer(selectedElements);
-            }
+        const sourceElements = document.getElementsByClassName("selected");
+        for (let i = 0; i < sourceElements.length; i++) {
+            const selectedSourceElement = sourceElements[i];
+            selectedSourceElement.style.left = `${selectedSourceElement.offsetLeft - endX}px`;
+            selectedSourceElement.style.top = `${selectedSourceElement.offsetTop - endY}px`;
         }
-        if (submitUpdates) {
+        if (new Date() - updateSend > 80) {
+            updateNoteElementsToServer(sourceElements);
             updateSend = new Date();
         }
     }
@@ -258,7 +259,8 @@ const pointerUp = e => {
     }
 
     if (sourceElement !== undefined) {
-        updateNoteElementToServer(sourceElement);
+        const sourceElements = document.getElementsByClassName("selected");
+        updateNoteElementsToServer(sourceElements);
     }
     sourceElement = undefined;
     e.stopPropagation();
@@ -299,7 +301,7 @@ const editNoteMenu = (element, note) => {
             element.style.height = `${size.height}px`;
         }
 
-        updateNoteElementToServer(element);
+        updateNoteElementsToServer([element]);
     }
 
     const dialogShown = e => {
@@ -367,12 +369,12 @@ const createOrUpdateNoteElement = (element, note) => {
 
             console.log(note.id);
             if (confirm("Do you really want to delete this note?")) {
-                connection.invoke("DeleteNote", id, note.id)
+                connection.invoke("DeleteNotes", id, [note.id])
                     .then(function () {
-                        console.log("DeleteNote called");
+                        console.log("DeleteNotes called");
                     })
                     .catch(function (err) {
-                        console.log("DeleteNote error");
+                        console.log("DeleteNotes error");
                         console.log(err);
                     });
                 notesElement.removeChild(element);
@@ -434,25 +436,27 @@ const addNote = (noteText, color) => {
     createOrUpdateNoteElement(element, note);
     notesElement.insertBefore(element, notesElement.firstChild);
 
-    updateNoteElementToServer(element);
+    updateNoteElementsToServer([element]);
 }
 
 const deleteAllNotesByClassFilter = (filter, remove) => {
     const matches = document.getElementsByClassName(filter);
+    let noteIds = [];
     while (matches.length > 0) {
-        if (remove) {
-            connection.invoke("DeleteNote", id, matches[0].id)
-                .then(function () {
-                    console.log("DeleteNote by filter called");
-                })
-                .catch(function (err) {
-                    console.log("DeleteNote by filter error");
-                    console.log(err);
-                    showErrorDialog();
-                });
-        }
-
+        noteIds.push(matches[0].id);
         notesElement.removeChild(matches[0]);
+    }
+
+    if (remove) {
+        connection.invoke("DeleteNotes", id, noteIds)
+            .then(function () {
+                console.log("DeleteNotes by filter called");
+            })
+            .catch(function (err) {
+                console.log("DeleteNotes by filter error");
+                console.log(err);
+                showErrorDialog();
+            });
     }
     selectedElement = undefined;
 }
@@ -653,31 +657,37 @@ connection.on("AllNotes", notes => {
     zoomOut(notes);
 });
 
-connection.on("UpdateNote", note => {
-    console.log("UpdateNote:");
-    console.log(note);
+connection.on("UpdateNotes", notes => {
+    console.log("UpdateNotes:");
+    console.log(notes);
 
-    note.position.x -= coordinateAdjustX;
-    note.position.y -= coordinateAdjustY;
+    for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        note.position.x -= coordinateAdjustX;
+        note.position.y -= coordinateAdjustY;
 
-    let element = document.getElementById(note.id);
-    if (element === undefined || element == null) {
-        element = document.createElement('div');
-        createOrUpdateNoteElement(element, note);
-        notesElement.insertBefore(element, notesElement.firstChild);
-    }
-    else {
-        createOrUpdateNoteElement(element, note);
+        let element = document.getElementById(note.id);
+        if (element === undefined || element == null) {
+            element = document.createElement('div');
+            createOrUpdateNoteElement(element, note);
+            notesElement.insertBefore(element, notesElement.firstChild);
+        }
+        else {
+            createOrUpdateNoteElement(element, note);
+        }
     }
 });
 
-connection.on("DeleteNote", noteId => {
-    console.log("DeleteNote:");
-    console.log(noteId);
+connection.on("DeleteNotes", noteIds => {
+    console.log("DeleteNotes:");
+    console.log(noteIds);
 
-    const element = document.getElementById(noteId);
-    if (element) {
-        notesElement.removeChild(element);
+    for (let i = 0; i < noteIds.length; i++) {
+        const noteId = noteIds[i];
+        const element = document.getElementById(noteId);
+        if (element) {
+            notesElement.removeChild(element);
+        }
     }
 });
 

@@ -44,26 +44,38 @@ public class NotesHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, id);
     }
 
-    public async Task UpdateNote(string id, StickyNote note)
+    public async Task UpdateNotes(string id, List<StickyNote> notes)
     {
-        var data = JsonSerializer.Serialize(note);
-        await _context.UpsertAsync(TableNames.Notes, new NotesEntity()
+        var tasks = new List<Task>();
+        foreach (var note in notes)
         {
-            PartitionKey = id,
-            RowKey = note.ID,
-            Data = data
-        });
-        await Clients.OthersInGroup(id).SendAsync("UpdateNote", note);
+            var data = JsonSerializer.Serialize(note);
+            tasks.Add(_context.UpsertAsync(TableNames.Notes, new NotesEntity()
+            {
+                PartitionKey = id,
+                RowKey = note.ID,
+                Data = data
+            }));
+        }
+
+        Task.WaitAll(tasks.ToArray());
+        await Clients.OthersInGroup(id).SendAsync("UpdateNotes", notes);
     }
 
 
-    public async Task DeleteNote(string id, string noteID)
+    public async Task DeleteNotes(string id, List<string> noteIDs)
     {
-        await _context.DeleteAsync(TableNames.Notes, new NotesEntity()
+        var tasks = new List<Task>();
+        foreach (var noteID in noteIDs)
         {
-            PartitionKey = id,
-            RowKey = noteID
-        });
-        await Clients.OthersInGroup(id).SendAsync("DeleteNote", noteID);
+            tasks.Add(_context.DeleteAsync(TableNames.Notes, new NotesEntity()
+            {
+                PartitionKey = id,
+                RowKey = noteID
+            }));
+        }
+
+        Task.WaitAll(tasks.ToArray());
+        await Clients.OthersInGroup(id).SendAsync("DeleteNotes", noteIDs);
     }
 }
