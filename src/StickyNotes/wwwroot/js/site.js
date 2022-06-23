@@ -165,6 +165,7 @@ const pointerMove = e => {
             const diffX = Math.abs(pointers[0].clientX - pointers[1].clientX);
             const diffY = Math.abs(pointers[0].clientY - pointers[1].clientY);
             const diff = Math.sqrt(diffX * diffX + diffY * diffY);
+            //const previousScale = scale;
             if (pointerDiff > 0) {
                 const delta = pointerDiff - diff;
                 scale += delta * -0.001;
@@ -172,13 +173,19 @@ const pointerMove = e => {
                 notesElement.style.transform = `scale(${scale})`;
             }
             //else {
+            //    const notes = document.getElementsByClassName("stickynote");
+            //    for (let i = 0; i < notes.length; i++) {
+            //        const element = notes[i];
+            //        element.style.left = `${element.offsetLeft - endX}px`;
+            //        element.style.top = `${element.offsetTop - endY}px`;
+            //    }
             //    console.log("TODO: Calculate center position");
             //    console.log({ p1X: pointers[0].clientX, p1Y: pointers[0].clientY });
             //    console.log({ p2X: pointers[1].clientX, p2Y: pointers[1].clientY });
 
-            //    const centerX = pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
-            //    const centerY = pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
-            //    console.log({ centerX, centerY, coordinateAdjustX, coordinateAdjustY });
+                //const centerX = pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
+                //const centerY = pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
+                //console.log({ centerX, centerY, coordinateAdjustX, coordinateAdjustY });
 
             //    const elements = document.getElementsByClassName("stickynote");
             //    for (let i = 0; i < elements.length; i++) {
@@ -733,7 +740,8 @@ document.addEventListener('keyup', (e) => {
             }
         }
         else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
-            (e.ctrlKey && (e.key === "w" || e.key === "r"))) {
+            (e.ctrlKey && (e.key === "w" || e.key === "r")) ||
+            (e.shiftKey && e.key === "s")) {
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
             deleteAllNotesByClassFilter("selected", true);
