@@ -4,6 +4,7 @@ let scale = 1;
 let isMove = false;
 let isResize = false;
 let isModalOpen = false;
+let isErrorDialogOpen = false;
 let currentX = 100, currentY = 100;
 let endX, endY;
 let sourceElement = undefined;
@@ -14,6 +15,9 @@ let updateSend = new Date();
 let coordinateAdjustX = 0, coordinateAdjustY = 0;
 
 const showErrorDialog = () => {
+    if (isErrorDialogOpen) return;
+
+    isErrorDialogOpen = true;
     const modalElement = document.getElementById("errorModal");
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
