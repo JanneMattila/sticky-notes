@@ -108,8 +108,8 @@ const pointerDown = e => {
 }
 
 const convertElementToNote = (element) => {
-    const noteX = Math.floor(element.style.left.replace("px", ""));
-    const noteY = Math.floor(element.style.top.replace("px", ""));
+    const noteX = element.offsetLeft;
+    const noteY = element.offsetTop;
     const noteZ = Math.floor(element.style.zIndex);
     const noteWidth = Math.floor(element.style.width.replace("px", ""));
     const noteHeight = Math.floor(element.style.height.replace("px", ""));
@@ -163,51 +163,34 @@ const pointerMove = e => {
     }
     if (pointers.length > 1) {
         // Handle gesture
-        console.log("handle gesture: " + pointers.length);
         if (pointers.length === 2) {
             // Support pinch and zoom
             const diffX = Math.abs(pointers[0].clientX - pointers[1].clientX);
             const diffY = Math.abs(pointers[0].clientY - pointers[1].clientY);
             const diff = Math.sqrt(diffX * diffX + diffY * diffY);
-            //const previousScale = scale;
             if (pointerDiff > 0) {
                 const delta = pointerDiff - diff;
+                const previousScale = scale;
                 scale += delta * -0.001;
                 scale = Math.min(Math.max(0.1, scale), 10);
                 notesElement.style.transform = `scale(${scale})`;
+
+                const scaleChange = previousScale - scale;
+                const centerX = document.documentElement.clientWidth / scale / 2; // pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
+                const centerY = document.documentElement.clientHeight / scale / 2; //  pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
+                const correctionX = Math.floor(centerX * scaleChange);
+                const correctionY = Math.floor(centerY * scaleChange);
+                console.table({ centerX, correctionX, scaleChange, correctionX, scale });
+
+                coordinateAdjustX -= correctionX;
+                coordinateAdjustY -= correctionY;
+                const elements = document.getElementsByClassName("stickynote");
+                for (let i = 0; i < elements.length; i++) {
+                    const element = elements[i];
+                    element.style.left = `${element.offsetLeft + correctionX}px`;
+                    element.style.top = `${element.offsetTop + correctionY}px`;
+                }
             }
-            //else {
-            //    const notes = document.getElementsByClassName("stickynote");
-            //    for (let i = 0; i < notes.length; i++) {
-            //        const element = notes[i];
-            //        element.style.left = `${element.offsetLeft - endX}px`;
-            //        element.style.top = `${element.offsetTop - endY}px`;
-            //    }
-            //    console.log("TODO: Calculate center position");
-            //    console.log({ p1X: pointers[0].clientX, p1Y: pointers[0].clientY });
-            //    console.log({ p2X: pointers[1].clientX, p2Y: pointers[1].clientY });
-
-                //const centerX = pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
-                //const centerY = pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
-                //console.log({ centerX, centerY, coordinateAdjustX, coordinateAdjustY });
-
-            //    const elements = document.getElementsByClassName("stickynote");
-            //    for (let i = 0; i < elements.length; i++) {
-            //        const element = elements[i];
-            //        let noteX = Math.floor(element.style.left.replace("px", ""));
-            //        let noteY = Math.floor(element.style.top.replace("px", ""));
-            //        console.log({ noteX, noteY });
-            //        noteX = centerX - noteX + coordinateAdjustX;
-            //        noteY = centerY - noteY + coordinateAdjustY;
-            //        console.log({ noteX, noteY });
-
-            //        //element.style.left = `${noteX}px`;
-            //        //element.style.top = `${noteY}px`;
-            //    }
-
-            //    coordinateAdjustX = -centerX;
-            //    coordinateAdjustY = -centerY;
-            //}
             pointerDiff = diff;
         }
         return;
@@ -220,9 +203,9 @@ const pointerMove = e => {
 
     if (sourceElement === undefined) {
         if (isMove) {
-            const notes = document.getElementsByClassName("stickynote");
             coordinateAdjustX += endX;
             coordinateAdjustY += endY;
+            const notes = document.getElementsByClassName("stickynote");
             for (let i = 0; i < notes.length; i++) {
                 const element = notes[i];
                 element.style.left = `${element.offsetLeft - endX}px`;
@@ -280,9 +263,29 @@ const pointerUp = e => {
 window.addEventListener("pointermove", pointerMove, { passive: true });
 window.addEventListener("pointerup", pointerUp);
 window.addEventListener("wheel", e => {
+    e.stopPropagation();
+    if (isModalOpen) return;
+
+    const previousScale = scale;
     scale += e.deltaY * -0.001;
     scale = Math.min(Math.max(0.1, scale), 10);
     notesElement.style.transform = `scale(${scale})`;
+
+    const scaleChange = previousScale - scale;
+    const centerX = e.clientX / scale;
+    const centerY = e.clientY / scale;
+    const correctionX = Math.floor(centerX * scaleChange);
+    const correctionY = Math.floor(centerY * scaleChange);
+    console.table({ centerX, correctionX, scaleChange, correctionX, scale });
+
+    coordinateAdjustX -= correctionX;
+    coordinateAdjustY -= correctionY;
+    const elements = document.getElementsByClassName("stickynote");
+    for (let i = 0; i < elements.length; i++) {
+        const element = elements[i];
+        element.style.left = `${element.offsetLeft + correctionX}px`;
+        element.style.top = `${element.offsetTop + correctionY}px`;
+    }
 });
 
 let protocol = new signalR.JsonHubProtocol();
