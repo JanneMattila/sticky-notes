@@ -171,7 +171,7 @@ const pointerMove = e => {
             if (pointerDiff > 0) {
                 const delta = pointerDiff - diff;
                 const previousScale = scale;
-                scale += delta * -0.001;
+                scale += delta * -0.002;
                 scale = Math.min(Math.max(0.1, scale), 10);
                 notesElement.style.transform = `scale(${scale})`;
 
