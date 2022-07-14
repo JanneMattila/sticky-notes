@@ -559,6 +559,7 @@ window.addEventListener('contextmenu', e => {
 
         const modalElement = document.getElementById("menuModal");
         const menuAddNotesElement = document.getElementById("menuAddNotes");
+        const menuZoomOutElement = document.getElementById("menuZoomOut");
         const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
         const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
 
@@ -569,6 +570,10 @@ window.addEventListener('contextmenu', e => {
             newDialogOpened = true;
             isModalOpen = false;
             showNoteDialog();
+        }
+        const menuZoomOutClick = e => {
+            modal.hide();
+            document.location.reload();
         }
         const menuStartNewSessionButtonClick = e => {
             modal.hide();
@@ -587,12 +592,14 @@ window.addEventListener('contextmenu', e => {
                 isModalOpen = false;
             }
             menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
+            menuZoomOutElement.removeEventListener("click", menuZoomOutClick);
             menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
             menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
         menuAddNotesElement.addEventListener("click", menuAddNotesButtonClick);
+        menuZoomOutElement.addEventListener("click", menuZoomOutClick);
         menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
         menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
