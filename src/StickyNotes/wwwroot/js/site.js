@@ -559,6 +559,7 @@ window.addEventListener('contextmenu', e => {
 
         const modalElement = document.getElementById("menuModal");
         const menuAddNotesElement = document.getElementById("menuAddNotes");
+        const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
         const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
 
         let newDialogOpened = false;
@@ -568,6 +569,10 @@ window.addEventListener('contextmenu', e => {
             newDialogOpened = true;
             isModalOpen = false;
             showNoteDialog();
+        }
+        const menuStartNewSessionButtonClick = e => {
+            modal.hide();
+            document.location.hash = "";
         }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
@@ -582,11 +587,13 @@ window.addEventListener('contextmenu', e => {
                 isModalOpen = false;
             }
             menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
+            menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
             menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
         menuAddNotesElement.addEventListener("click", menuAddNotesButtonClick);
+        menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
         menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
