@@ -613,6 +613,15 @@ connection.onclose(err => {
     console.log(`onclose: ${err}`);
 });
 
+connection.onreconnecting(e => {
+    console.log(`onreconnecting : ${e}`);
+});
+
+connection.onreconnected(connectionId => {
+    console.log(`onreconnected : ${connectionId}`);
+    connection.invoke("Join", id);
+});
+
 const startConnection = () => {
     connection.start()
         .then(function () {
