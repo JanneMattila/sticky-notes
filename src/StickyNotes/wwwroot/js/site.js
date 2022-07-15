@@ -196,8 +196,8 @@ const pointerMove = e => {
         return;
     }
 
-    endX = currentX - clientX;
-    endY = currentY - clientY;
+    endX = Math.floor(currentX - clientX);
+    endY = Math.floor(currentY - clientY);
     currentX = clientX;
     currentY = clientY;
 
