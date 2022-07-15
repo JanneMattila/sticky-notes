@@ -21,4 +21,7 @@ public class StickyNote
 
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
+
+    [JsonPropertyName("link")]
+    public string Link { get; set; } = string.Empty;
 }

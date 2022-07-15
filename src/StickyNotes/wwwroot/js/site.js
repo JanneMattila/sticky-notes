@@ -118,6 +118,7 @@ const convertElementToNote = (element) => {
     return {
         id: element.id,
         text: element.innerText,
+        link: element.dataset.link,
         color: element.style.backgroundColor,
         position: {
             x: noteX + coordinateAdjustX,
@@ -139,7 +140,7 @@ const updateNoteElementsToServer = (elements) => {
     }
     connection.invoke("UpdateNotes", id, notes)
         .then(function () {
-            console.log("updateNoteMove called");
+            console.log("updateNoteMove called", notes);
         })
         .catch(function (err) {
             console.log("updateNoteMove error");
@@ -299,6 +300,7 @@ let connection = new signalR.HubConnectionBuilder()
 const editNoteMenu = (element, note) => {
     const modalElement = document.getElementById("colorModal");
     const noteTextElement = document.getElementById("noteText");
+    const noteLinkElement = document.getElementById("noteLink");
     const noteColorSelectElement = document.getElementById("noteColor");
     const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
 
@@ -307,6 +309,7 @@ const editNoteMenu = (element, note) => {
 
         const isTextUpdated = noteTextElement.value !== element.innerText;
         note.text = element.innerText = noteTextElement.value;
+        note.link = element.dataset.link = noteLinkElement.value;
         note.color = element.style.backgroundColor = noteColorSelectElement.value;
         if (isTextUpdated) {
             console.log("Re-calculate the size due to text update");
@@ -336,6 +339,7 @@ const editNoteMenu = (element, note) => {
     modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
     noteTextElement.value = note.text;
+    noteLinkElement.value = note.link;
     noteColorSelectElement.value = note.color;
 
     const modal = new bootstrap.Modal(modalElement);
@@ -345,6 +349,7 @@ const editNoteMenu = (element, note) => {
 const createOrUpdateNoteElement = (element, note) => {
     element.id = note.id;
     element.innerText = note.text;
+    element.dataset.link = note.link;
     element.className = "stickynote";
     element.style.backgroundColor = note.color;
     element.style.left = `${note.position.x}px`;
@@ -420,7 +425,7 @@ const calculateNoteSize = text => {
     const lines = text.split(/\r\n|\r|\n/);
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        let rowWidth = line.length * 16;
+        let rowWidth = line.length * 17;
         if (width < rowWidth) {
             width = rowWidth;
         }
@@ -431,11 +436,12 @@ const calculateNoteSize = text => {
     return { width, height };
 }
 
-const addNote = (noteText, color) => {
+const addNote = (noteText, noteLink, color) => {
     const size = calculateNoteSize(noteText);
     let note = {
         id: generateId(),
         text: noteText,
+        link: noteLink,
         color: color,
         position: {
             x: currentX - 100 + 200 * Math.random(),
@@ -485,6 +491,7 @@ const showNoteDialog = () => {
     isModalOpen = true;
     const modalElement = document.getElementById("colorModal");
     const noteTextElement = document.getElementById("noteText");
+    const noteLinkElement = document.getElementById("noteLink");
     const noteColorSelectElement = document.getElementById("noteColor");
     const updateNoteSaveButtonElement = document.getElementById("updateNoteSaveButton");
 
@@ -495,8 +502,9 @@ const showNoteDialog = () => {
     const updateNoteSaveButtonClick = e => {
 
         if (noteTextElement.value.length !== 0) {
-            addedNotes.push({ text: noteTextElement.value, color: noteColorSelectElement.value });
+            addedNotes.push({ text: noteTextElement.value, link: noteLinkElement.value, color: noteColorSelectElement.value });
             noteTextElement.value = "";
+            noteLinkElement.value = "";
             noteColorSelectElement.value = "lightyellow";
             noteTextElement.focus();
         }
@@ -518,7 +526,7 @@ const showNoteDialog = () => {
 
         for (let i = 0; i < addedNotes.length; i++) {
             const addedNote = addedNotes[i];
-            addNote(addedNote.text, addedNote.color);
+            addNote(addedNote.text, addedNote.link, addedNote.color);
         }
     }
 

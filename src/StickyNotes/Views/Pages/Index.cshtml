@@ -9,6 +9,8 @@
                 <div class="mb-3">
                     <label for="noteText" class="form-label">Text</label>
                     <textarea class="form-control" id="noteText" rows="3"></textarea>
+                    <label for="noteLink" class="form-label">Link (<a href="#" title="Open link" onclick="window.open(document.getElementById('noteLink').value, '_blank').focus();">open link</a>)</label>
+                    <input type="url" class="form-control" id="noteLink" />
                 </div>
 
                 <label for="noteColor" class="form-label">Color</label>
