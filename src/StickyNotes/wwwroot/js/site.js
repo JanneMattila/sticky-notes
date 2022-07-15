@@ -577,7 +577,9 @@ window.addEventListener('contextmenu', e => {
         }
         const menuStartNewSessionButtonClick = e => {
             modal.hide();
-            document.location.hash = "";
+
+            id = generateId();
+            document.location.hash = id;
         }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
