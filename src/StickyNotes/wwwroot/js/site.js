@@ -752,32 +752,45 @@ document.addEventListener('keyup', (e) => {
                 const selectedlement = selectedElements[i];
                 notes.push(convertElementToNote(selectedlement));
             }
-            sessionStorage.setItem("copy", JSON.stringify(notes));
+
+            const json = JSON.stringify(notes);
+            navigator.clipboard.writeText(json).then(() => {
+                // Clipboard successfully set
+            }, () => {
+                // Clipboard write failed, so fallback to session storage
+                sessionStorage.setItem("copy", json);
+            });
         }
         else if (e.ctrlKey && e.key === "v") {
             // Paste
-            const json = sessionStorage.getItem("copy");
-            console.log(json);
+            let json;
+            navigator.clipboard.readText().then(text => {
+                // Clipboard successfully read
+                json = text;
+            }, () => {
+                // Clipboard read failed, so fallback to session storage
+                json = sessionStorage.getItem("copy");
+            }).then(() => {
+                const notes = JSON.parse(json);
+                if (notes !== undefined && notes.length !== undefined) {
+                    const elementsCreated = [];
+                    for (let i = 0; i < notes.length; i++) {
+                        const note = notes[i];
+                        note.id = generateId();
+                        note.position.x += 100;
+                        note.position.y += 100;
+                        note.position.rotation = Math.floor(Math.random() * 8) - 4;
+                        let element = document.createElement('div');
+                        createOrUpdateNoteElement(element, note);
+                        notesElement.insertBefore(element, notesElement.firstChild);
+                        elementsCreated.push(element);
+                    }
 
-            const notes = JSON.parse(json);
-            if (notes !== undefined && notes.length !== undefined) {
-                const elementsCreated = [];
-                for (let i = 0; i < notes.length; i++) {
-                    const note = notes[i];
-                    note.id = generateId();
-                    note.position.x += 100;
-                    note.position.y += 100;
-                    note.position.rotation = Math.floor(Math.random() * 8) - 4;
-                    let element = document.createElement('div');
-                    createOrUpdateNoteElement(element, note);
-                    notesElement.insertBefore(element, notesElement.firstChild);
-                    elementsCreated.push(element);
+                    if (elementsCreated.length > 0) {
+                        updateNoteElementsToServer(elementsCreated);
+                    }
                 }
-
-                if (elementsCreated.length > 0) {
-                    updateNoteElementsToServer(elementsCreated);
-                }
-            }
+            });
         }
         else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
             (e.ctrlKey && (e.key === "w" || e.key === "r")) ||
