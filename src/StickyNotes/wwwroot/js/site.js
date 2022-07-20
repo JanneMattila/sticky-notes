@@ -1,23 +1,25 @@
-﻿let notesElement = document.getElementById("notes");
+﻿let _notesElement = document.getElementById("notes");
 
-let scale = 1;
-let isMove = false;
-let isResize = false;
-let isModalOpen = false;
-let isErrorDialogOpen = false;
-let currentX = 100, currentY = 100;
-let endX, endY;
-let sourceElement = undefined;
-let selectedElement = undefined;
-let pointers = new Array();
-let pointerDiff = 0;
-let updateSend = new Date();
-let coordinateAdjustX = 0, coordinateAdjustY = 0;
+let _id;
+let _scale = 1;
+let _isMove = false;
+let _isResize = false;
+let _isModalOpen = false;
+let _isErrorDialogOpen = false;
+let _currentX = 100, _currentY = 100;
+let _endX, _endY;
+let _sourceElement = undefined;
+let _selectedElement = undefined;
+let _pointers = new Array();
+let _pointerDiff = 0;
+let _updateSend = new Date();
+let _coordinateAdjustX = 0, _coordinateAdjustY = 0;
+let _imported = false;
 
 const showErrorDialog = () => {
-    if (isErrorDialogOpen) return;
+    if (_isErrorDialogOpen) return;
 
-    isErrorDialogOpen = true;
+    _isErrorDialogOpen = true;
     const modalElement = document.getElementById("errorModal");
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
@@ -33,42 +35,72 @@ const generateId = () => {
     }
 }
 
-const getId = () => {
-    let id = document.location.hash.replace("#", "");
-    if (id.length === 0) {
-        id = generateId();
-        document.location.hash = id;
+const parseQueryString = () => {
+    let parsedResult = new Map();
+    const qs = document.location.search.substring(1); // Ignore starting '?'
+    const items = qs.split('&');
+    items.forEach(item => {
+        const params = item.split('=');
+        parsedResult.set(params[0], params[1]);
+    });
+    return parsedResult;
+}
+
+const getId = async () => {
+
+    if (document.location.search !== "") {
+        _imported = true;
+        const queryString = parseQueryString();
+        const importUri = queryString.get("import");
+        if (importUri !== undefined) {
+            console.log(importUri);
+            const response = await fetch(importUri);
+            if (response.status === 200) {
+                console.log(response.status);
+                const json = await response.json();
+                console.log(json);
+                importNotes(json);
+                zoomOut(json);
+            }
+        }
+        return;
+    }
+    else {
+        _id = document.location.hash.replace("#", "");
+        if (_id.length === 0) {
+            _id = generateId();
+            document.location.hash = _id;
+        }
     }
 
     document.querySelector('meta[property="og:url"]').setAttribute("content", document.location.href);
-    return id;
 }
-let id = getId();
-console.log(id);
+
+getId();
 
 window.addEventListener("hashchange", e => {
     if (e.oldURL.indexOf("#") != -1) {
         console.log("hashchange event occured!");
-        connection.invoke("Leave", id)
+        connection.invoke("Leave", _id)
             .then(function () {
                 console.log("Leave called");
 
-                id = getId();
-                console.log(id);
+                getId();
+                console.log(_id);
 
                 const matches = document.getElementsByClassName("stickynote");
                 while (matches.length > 0) {
-                    notesElement.removeChild(matches[0]);
+                    _notesElement.removeChild(matches[0]);
                 }
-                selectedElement = selectedElement = undefined;
-                pointers = [];
-                scale = 1;
-                isMove = false;
-                isResize = false;
-                isModalOpen = false;
-                coordinateAdjustX = coordinateAdjustY = 0;
+                _selectedElement = _selectedElement = undefined;
+                _pointers = [];
+                _scale = 1;
+                _isMove = false;
+                _isResize = false;
+                _isModalOpen = false;
+                _coordinateAdjustX = _coordinateAdjustY = 0;
 
-                connection.invoke("Join", id);
+                connection.invoke("Join", _id);
             })
             .catch(function (err) {
                 console.log("Leave error");
@@ -86,11 +118,11 @@ const deSelectNotes = () => {
 }
 
 const pointerDown = e => {
-    if (isModalOpen) return;
+    if (_isModalOpen) return;
 
-    pointers.push(e);
-    currentX = e.clientX / scale;
-    currentY = e.clientY / scale;
+    _pointers.push(e);
+    _currentX = e.clientX / _scale;
+    _currentY = e.clientY / _scale;
 
     const width = e.srcElement.offsetWidth;
     const height = e.srcElement.offsetHeight;
@@ -101,9 +133,9 @@ const pointerDown = e => {
     else {
         deSelectNotes();
     }
-    selectedElement = sourceElement = e.srcElement;
-    sourceElement.className = "stickynote selected";
-    isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.6;
+    _selectedElement = _sourceElement = e.srcElement;
+    _sourceElement.className = "stickynote selected";
+    _isResize = e.offsetX >= width * 0.7 && e.offsetY >= height * 0.6;
     e.stopPropagation();
 }
 
@@ -121,8 +153,8 @@ const convertElementToNote = (element) => {
         link: element.dataset.link,
         color: element.style.backgroundColor,
         position: {
-            x: noteX + coordinateAdjustX,
-            y: noteY + coordinateAdjustY,
+            x: noteX + _coordinateAdjustX,
+            y: noteY + _coordinateAdjustY,
             z: noteZ,
             rotation: noteRotation
         },
@@ -131,14 +163,37 @@ const convertElementToNote = (element) => {
     };
 }
 
+const importNotes = notes => {
+    if (notes !== undefined && notes.length !== undefined) {
+        const elementsCreated = [];
+        for (let i = 0; i < notes.length; i++) {
+            const note = notes[i];
+            note.id = generateId();
+            note.position.x += 100;
+            note.position.y += 100;
+            note.position.rotation = Math.floor(Math.random() * 8) - 4;
+            let element = document.createElement('div');
+            createOrUpdateNoteElement(element, note);
+            _notesElement.insertBefore(element, _notesElement.firstChild);
+            elementsCreated.push(element);
+        }
+
+        if (elementsCreated.length > 0) {
+            updateNoteElementsToServer(elementsCreated);
+        }
+    }
+}
+
 const updateNoteElementsToServer = (elements) => {
+    if (_imported) return;
+
     let notes = [];
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i];
         let note = convertElementToNote(element);
         notes.push(note);
     }
-    connection.invoke("UpdateNotes", id, notes)
+    connection.invoke("UpdateNotes", _id, notes)
         .then(function () {
             console.log("updateNoteMove called", notes);
         })
@@ -151,40 +206,40 @@ const updateNoteElementsToServer = (elements) => {
 
 const pointerMove = e => {
     e.stopPropagation();
-    if (isModalOpen) return;
+    if (_isModalOpen) return;
 
-    const clientX = e.clientX / scale;
-    const clientY = e.clientY / scale;
+    const clientX = e.clientX / _scale;
+    const clientY = e.clientY / _scale;
 
-    for (let i = 0; i < pointers.length; i++) {
-        if (pointers[i].pointerId == e.pointerId) {
-            pointers[i] = e;
+    for (let i = 0; i < _pointers.length; i++) {
+        if (_pointers[i].pointerId == e.pointerId) {
+            _pointers[i] = e;
             break;
         }
     }
-    if (pointers.length > 1) {
+    if (_pointers.length > 1) {
         // Handle gesture
-        if (pointers.length === 2) {
+        if (_pointers.length === 2) {
             // Support pinch and zoom
-            const diffX = Math.abs(pointers[0].clientX - pointers[1].clientX);
-            const diffY = Math.abs(pointers[0].clientY - pointers[1].clientY);
+            const diffX = Math.abs(_pointers[0].clientX - _pointers[1].clientX);
+            const diffY = Math.abs(_pointers[0].clientY - _pointers[1].clientY);
             const diff = Math.sqrt(diffX * diffX + diffY * diffY);
-            if (pointerDiff > 0) {
-                const delta = pointerDiff - diff;
-                const previousScale = scale;
-                scale += delta * -0.002;
-                scale = Math.min(Math.max(0.1, scale), 10);
-                notesElement.style.transform = `scale(${scale})`;
+            if (_pointerDiff > 0) {
+                const delta = _pointerDiff - diff;
+                const previousScale = _scale;
+                _scale += delta * -0.002;
+                _scale = Math.min(Math.max(0.1, _scale), 10);
+                _notesElement.style.transform = `scale(${_scale})`;
 
-                const scaleChange = previousScale - scale;
-                const centerX = document.documentElement.clientWidth / scale / 2; // pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
-                const centerY = document.documentElement.clientHeight / scale / 2; //  pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
+                const scaleChange = previousScale - _scale;
+                const centerX = document.documentElement.clientWidth / _scale / 2; // pointers[0].clientX + (pointers[1].clientX - pointers[0].clientX) / 2;
+                const centerY = document.documentElement.clientHeight / _scale / 2; //  pointers[0].clientY + (pointers[1].clientY - pointers[0].clientY) / 2;
                 const correctionX = Math.floor(centerX * scaleChange);
                 const correctionY = Math.floor(centerY * scaleChange);
-                console.table({ centerX, correctionX, scaleChange, correctionX, scale });
+                console.table({ centerX, correctionX, scaleChange, correctionX, _scale });
 
-                coordinateAdjustX -= correctionX;
-                coordinateAdjustY -= correctionY;
+                _coordinateAdjustX -= correctionX;
+                _coordinateAdjustY -= correctionY;
                 const elements = document.getElementsByClassName("stickynote");
                 for (let i = 0; i < elements.length; i++) {
                     const element = elements[i];
@@ -192,40 +247,40 @@ const pointerMove = e => {
                     element.style.top = `${element.offsetTop + correctionY}px`;
                 }
             }
-            pointerDiff = diff;
+            _pointerDiff = diff;
         }
         return;
     }
 
-    endX = Math.floor(currentX - clientX);
-    endY = Math.floor(currentY - clientY);
-    currentX = clientX;
-    currentY = clientY;
+    _endX = Math.floor(_currentX - clientX);
+    _endY = Math.floor(_currentY - clientY);
+    _currentX = clientX;
+    _currentY = clientY;
 
-    if (sourceElement === undefined) {
-        if (isMove) {
-            coordinateAdjustX += endX;
-            coordinateAdjustY += endY;
+    if (_sourceElement === undefined) {
+        if (_isMove) {
+            _coordinateAdjustX += _endX;
+            _coordinateAdjustY += _endY;
             const notes = document.getElementsByClassName("stickynote");
             for (let i = 0; i < notes.length; i++) {
                 const element = notes[i];
-                element.style.left = `${element.offsetLeft - endX}px`;
-                element.style.top = `${element.offsetTop - endY}px`;
+                element.style.left = `${element.offsetLeft - _endX}px`;
+                element.style.top = `${element.offsetTop - _endY}px`;
             }
         }
         return;
     }
 
-    if (isResize) {
-        const width = Math.floor(sourceElement.style.width.replace("px", ""));
-        const height = Math.floor(sourceElement.style.height.replace("px", ""));
+    if (_isResize) {
+        const width = Math.floor(_sourceElement.style.width.replace("px", ""));
+        const height = Math.floor(_sourceElement.style.height.replace("px", ""));
 
-        sourceElement.style.width = `${width - endX}px`;
-        sourceElement.style.height = `${height - endY}px`;
+        _sourceElement.style.width = `${width - _endX}px`;
+        _sourceElement.style.height = `${height - _endY}px`;
 
-        if (new Date() - updateSend > 80) {
-            updateNoteElementsToServer([sourceElement]);
-            updateSend = new Date();
+        if (new Date() - _updateSend > 80) {
+            updateNoteElementsToServer([_sourceElement]);
+            _updateSend = new Date();
         }
     }
     else {
@@ -233,31 +288,31 @@ const pointerMove = e => {
         const sourceElements = document.getElementsByClassName("selected");
         for (let i = 0; i < sourceElements.length; i++) {
             const selectedSourceElement = sourceElements[i];
-            selectedSourceElement.style.left = `${selectedSourceElement.offsetLeft - endX}px`;
-            selectedSourceElement.style.top = `${selectedSourceElement.offsetTop - endY}px`;
+            selectedSourceElement.style.left = `${selectedSourceElement.offsetLeft - _endX}px`;
+            selectedSourceElement.style.top = `${selectedSourceElement.offsetTop - _endY}px`;
         }
-        if (new Date() - updateSend > 80) {
+        if (new Date() - _updateSend > 80) {
             updateNoteElementsToServer(sourceElements);
-            updateSend = new Date();
+            _updateSend = new Date();
         }
     }
 }
 
 const pointerUp = e => {
-    isMove = false;
-    for (let i = 0; i < pointers.length; i++) {
-        const p = pointers[i];
+    _isMove = false;
+    for (let i = 0; i < _pointers.length; i++) {
+        const p = _pointers[i];
         if (p.pointerId == e.pointerId) {
-            pointers.splice(i, 1);
+            _pointers.splice(i, 1);
             break;
         }
     }
 
-    if (sourceElement !== undefined) {
+    if (_sourceElement !== undefined) {
         const sourceElements = document.getElementsByClassName("selected");
         updateNoteElementsToServer(sourceElements);
     }
-    sourceElement = undefined;
+    _sourceElement = undefined;
     e.stopPropagation();
 }
 
@@ -265,22 +320,22 @@ window.addEventListener("pointermove", pointerMove, { passive: true });
 window.addEventListener("pointerup", pointerUp);
 window.addEventListener("wheel", e => {
     e.stopPropagation();
-    if (isModalOpen) return;
+    if (_isModalOpen) return;
 
-    const previousScale = scale;
-    scale += e.deltaY * -0.001;
-    scale = Math.min(Math.max(0.1, scale), 10);
-    notesElement.style.transform = `scale(${scale})`;
+    const previousScale = _scale;
+    _scale += e.deltaY * -0.001;
+    _scale = Math.min(Math.max(0.1, _scale), 10);
+    _notesElement.style.transform = `scale(${_scale})`;
 
-    const scaleChange = previousScale - scale;
-    const centerX = e.clientX / scale;
-    const centerY = e.clientY / scale;
+    const scaleChange = previousScale - _scale;
+    const centerX = e.clientX / _scale;
+    const centerY = e.clientY / _scale;
     const correctionX = Math.floor(centerX * scaleChange);
     const correctionY = Math.floor(centerY * scaleChange);
-    console.table({ centerX, correctionX, scaleChange, correctionX, scale });
+    console.table({ centerX, correctionX, scaleChange, correctionX, _scale });
 
-    coordinateAdjustX -= correctionX;
-    coordinateAdjustY -= correctionY;
+    _coordinateAdjustX -= correctionX;
+    _coordinateAdjustY -= correctionY;
     const elements = document.getElementsByClassName("stickynote");
     for (let i = 0; i < elements.length; i++) {
         const element = elements[i];
@@ -322,12 +377,12 @@ const editNoteMenu = (element, note) => {
     }
 
     const dialogShown = e => {
-        isModalOpen = true;
+        _isModalOpen = true;
         noteTextElement.focus();
     }
 
     const dialogClosed = e => {
-        isModalOpen = false;
+        _isModalOpen = false;
 
         updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
         modalElement.removeEventListener("shown.bs.modal", dialogShown);
@@ -360,16 +415,16 @@ const createOrUpdateNoteElement = (element, note) => {
     element.style.height = `${note.height}px`;
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
-        pointers = [];
+        _pointers = [];
         editNoteMenu(element, note);
     });
     element.addEventListener("contextmenu", e => {
-        pointers = [];
+        _pointers = [];
 
         e.preventDefault();
         e.stopPropagation();
 
-        isModalOpen = true;
+        _isModalOpen = true;
 
         const modalElement = document.getElementById("noteMenuModal");
         const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
@@ -380,7 +435,7 @@ const createOrUpdateNoteElement = (element, note) => {
             modal.hide();
 
             newDialogOpened = true;
-            isModalOpen = false;
+            _isModalOpen = false;
             editNoteMenu(element, note);
         }
         const menuDeleteNoteButtonClick = e => {
@@ -388,7 +443,7 @@ const createOrUpdateNoteElement = (element, note) => {
 
             console.log(note.id);
             if (confirm("Do you really want to delete this note?")) {
-                connection.invoke("DeleteNotes", id, [note.id])
+                connection.invoke("DeleteNotes", _id, [note.id])
                     .then(function () {
                         console.log("DeleteNotes called");
                     })
@@ -396,13 +451,13 @@ const createOrUpdateNoteElement = (element, note) => {
                         console.log("DeleteNotes error");
                         console.log(err);
                     });
-                notesElement.removeChild(element);
+                _notesElement.removeChild(element);
             }
         }
 
         const dialogClosed = e => {
             if (!newDialogOpened) {
-                isModalOpen = false;
+                _isModalOpen = false;
             }
             noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
             noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
@@ -444,8 +499,8 @@ const addNote = (noteText, noteLink, color) => {
         link: noteLink,
         color: color,
         position: {
-            x: currentX - 100 + 200 * Math.random(),
-            y: currentY - 100 + 200 * Math.random(),
+            x: _currentX - 100 + 200 * Math.random(),
+            y: _currentY - 100 + 200 * Math.random(),
             z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
@@ -454,7 +509,7 @@ const addNote = (noteText, noteLink, color) => {
     }
     let element = document.createElement('div');
     createOrUpdateNoteElement(element, note);
-    notesElement.insertBefore(element, notesElement.firstChild);
+    _notesElement.insertBefore(element, _notesElement.firstChild);
 
     updateNoteElementsToServer([element]);
 }
@@ -464,11 +519,11 @@ const deleteAllNotesByClassFilter = (filter, remove) => {
     let noteIds = [];
     while (matches.length > 0) {
         noteIds.push(matches[0].id);
-        notesElement.removeChild(matches[0]);
+        _notesElement.removeChild(matches[0]);
     }
 
     if (remove) {
-        connection.invoke("DeleteNotes", id, noteIds)
+        connection.invoke("DeleteNotes", _id, noteIds)
             .then(function () {
                 console.log("DeleteNotes by filter called");
             })
@@ -478,17 +533,17 @@ const deleteAllNotesByClassFilter = (filter, remove) => {
                 showErrorDialog();
             });
     }
-    selectedElement = undefined;
+    _selectedElement = undefined;
 }
 
 const showNoteDialog = () => {
-    isMove = false;
-    pointers = [];
-    if (isModalOpen) {
+    _isMove = false;
+    _pointers = [];
+    if (_isModalOpen) {
         return;
     }
 
-    isModalOpen = true;
+    _isModalOpen = true;
     const modalElement = document.getElementById("colorModal");
     const noteTextElement = document.getElementById("noteText");
     const noteLinkElement = document.getElementById("noteLink");
@@ -518,7 +573,7 @@ const showNoteDialog = () => {
     }
 
     const dialogClosed = e => {
-        isModalOpen = false;
+        _isModalOpen = false;
 
         updateNoteSaveButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
         modalElement.removeEventListener("shown.bs.modal", dialogShown);
@@ -548,22 +603,22 @@ window.addEventListener('blur', () => {
 });
 
 window.addEventListener('pointerdown', e => {
-    if (isModalOpen) return;
+    if (_isModalOpen) return;
 
     deSelectNotes();
 
-    pointerDiff = 0;
-    pointers.push(e);
-    currentX = e.clientX / scale;
-    currentY = e.clientY / scale;
-    isMove = true;
+    _pointerDiff = 0;
+    _pointers.push(e);
+    _currentX = e.clientX / _scale;
+    _currentY = e.clientY / _scale;
+    _isMove = true;
 });
 
 window.addEventListener('contextmenu', e => {
     e.preventDefault();
 
-    if (sourceElement === undefined) {
-        isModalOpen = true;
+    if (_sourceElement === undefined) {
+        _isModalOpen = true;
 
         const modalElement = document.getElementById("menuModal");
         const menuAddNotesElement = document.getElementById("menuAddNotes");
@@ -576,7 +631,7 @@ window.addEventListener('contextmenu', e => {
             modal.hide();
 
             newDialogOpened = true;
-            isModalOpen = false;
+            _isModalOpen = false;
             showNoteDialog();
         }
         const menuZoomOutClick = e => {
@@ -586,8 +641,8 @@ window.addEventListener('contextmenu', e => {
         const menuStartNewSessionButtonClick = e => {
             modal.hide();
 
-            id = generateId();
-            document.location.hash = id;
+            _id = generateId();
+            document.location.hash = _id;
         }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
@@ -599,7 +654,7 @@ window.addEventListener('contextmenu', e => {
 
         const dialogClosed = e => {
             if (!newDialogOpened) {
-                isModalOpen = false;
+                _isModalOpen = false;
             }
             menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
             menuZoomOutElement.removeEventListener("click", menuZoomOutClick);
@@ -629,14 +684,16 @@ connection.onreconnecting(e => {
 
 connection.onreconnected(connectionId => {
     console.log(`onreconnected : ${connectionId}`);
-    connection.invoke("Join", id);
+    connection.invoke("Join", _id);
 });
 
 const startConnection = () => {
+    if (_imported) return;
+
     connection.start()
         .then(function () {
             // Connected
-            connection.invoke("Join", id);
+            connection.invoke("Join", _id);
         })
         .catch(function (err) {
             console.log(err);
@@ -665,36 +722,36 @@ const zoomOut = notes => {
 
     if (scaleX < 1 && scaleX < scaleY) {
         console.log("scale x axes: " + scaleX);
-        scale = scaleX;
-        coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * scale) / 2;
-        coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * scale) / 2;
+        _scale = scaleX;
+        _coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * _scale) / 2;
+        _coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * _scale) / 2;
     }
     else if (scaleY < 1 && scaleY <= scaleX) {
         console.log("scale y axes: " + scaleY);
-        scale = scaleY;
-        coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * scale) / 2;
-        coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * scale) / 2;
+        _scale = scaleY;
+        _coordinateAdjustX = minX - 20 - (document.documentElement.clientWidth - deltaX * _scale) / 2;
+        _coordinateAdjustY = minY - 20 - (document.documentElement.clientHeight - deltaY * _scale) / 2;
     }
     else {
         // No need to scale but let's center
         console.log("no scale required, centering");
-        scale = 1.0;
-        coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
-        coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
+        _scale = 1.0;
+        _coordinateAdjustX = minX - document.documentElement.clientWidth / 2 + deltaX / 2;
+        _coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
     }
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
 
-        note.position.x -= coordinateAdjustX;
-        note.position.y -= coordinateAdjustY;
+        note.position.x -= _coordinateAdjustX;
+        note.position.y -= _coordinateAdjustY;
 
         const element = document.createElement('div');
         createOrUpdateNoteElement(element, note);
-        notesElement.insertBefore(element, notesElement.firstChild);
+        _notesElement.insertBefore(element, _notesElement.firstChild);
     }
 
-    notesElement.style.transform = `scale(${scale})`;
+    _notesElement.style.transform = `scale(${_scale})`;
 }
 
 connection.on("AllNotes", notes => {
@@ -710,14 +767,14 @@ connection.on("UpdateNotes", notes => {
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
-        note.position.x -= coordinateAdjustX;
-        note.position.y -= coordinateAdjustY;
+        note.position.x -= _coordinateAdjustX;
+        note.position.y -= _coordinateAdjustY;
 
         let element = document.getElementById(note.id);
         if (element === undefined || element == null) {
             element = document.createElement('div');
             createOrUpdateNoteElement(element, note);
-            notesElement.insertBefore(element, notesElement.firstChild);
+            _notesElement.insertBefore(element, _notesElement.firstChild);
         }
         else {
             createOrUpdateNoteElement(element, note);
@@ -733,7 +790,7 @@ connection.on("DeleteNotes", noteIds => {
         const noteId = noteIds[i];
         const element = document.getElementById(noteId);
         if (element) {
-            notesElement.removeChild(element);
+            _notesElement.removeChild(element);
         }
     }
 });
@@ -741,9 +798,9 @@ connection.on("DeleteNotes", noteIds => {
 document.addEventListener('keyup', (e) => {
     if (e.key === "Escape") {
         deSelectNotes();
-        selectedElement = undefined;
+        _selectedElement = undefined;
     }
-    else if (!isModalOpen) {
+    else if (!_isModalOpen) {
         if (e.ctrlKey && e.key === "c") {
             // Copy
             const selectedElements = document.getElementsByClassName("selected");
@@ -772,24 +829,7 @@ document.addEventListener('keyup', (e) => {
                 json = sessionStorage.getItem("copy");
             }).then(() => {
                 const notes = JSON.parse(json);
-                if (notes !== undefined && notes.length !== undefined) {
-                    const elementsCreated = [];
-                    for (let i = 0; i < notes.length; i++) {
-                        const note = notes[i];
-                        note.id = generateId();
-                        note.position.x += 100;
-                        note.position.y += 100;
-                        note.position.rotation = Math.floor(Math.random() * 8) - 4;
-                        let element = document.createElement('div');
-                        createOrUpdateNoteElement(element, note);
-                        notesElement.insertBefore(element, notesElement.firstChild);
-                        elementsCreated.push(element);
-                    }
-
-                    if (elementsCreated.length > 0) {
-                        updateNoteElementsToServer(elementsCreated);
-                    }
-                }
+                importNotes(notes);
             });
         }
         else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
@@ -807,8 +847,8 @@ document.addEventListener('keyup', (e) => {
             }
         }
         else if (e.key === "0" && e.ctrlKey /* Ctrl-0 to reset zoom */) {
-            scale = 1.0;
-            notesElement.style.transform = `scale(${scale})`;
+            _scale = 1.0;
+            _notesElement.style.transform = `scale(${_scale})`;
         }
         else if (!e.altKey) {
             console.log(e);
