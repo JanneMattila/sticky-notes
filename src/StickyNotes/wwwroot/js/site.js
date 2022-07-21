@@ -353,6 +353,8 @@ let connection = new signalR.HubConnectionBuilder()
     .build();
 
 const editNoteMenu = (element, note) => {
+    _isModalOpen = true;
+
     const modalElement = document.getElementById("colorModal");
     const noteTextElement = document.getElementById("noteText");
     const noteLinkElement = document.getElementById("noteLink");
@@ -377,7 +379,6 @@ const editNoteMenu = (element, note) => {
     }
 
     const dialogShown = e => {
-        _isModalOpen = true;
         noteTextElement.focus();
     }
 
@@ -419,12 +420,12 @@ const createOrUpdateNoteElement = (element, note) => {
         editNoteMenu(element, note);
     });
     element.addEventListener("contextmenu", e => {
+        if (_isModalOpen) return;
+        _isModalOpen = true;
         _pointers = [];
 
         e.preventDefault();
         e.stopPropagation();
-
-        _isModalOpen = true;
 
         const modalElement = document.getElementById("noteMenuModal");
         const noteMenuOpenLinkElement = document.getElementById("noteMenuOpenLink");
@@ -629,6 +630,7 @@ window.addEventListener('pointerdown', e => {
 
 window.addEventListener('contextmenu', e => {
     e.preventDefault();
+    if (_isModalOpen) return;
 
     if (_sourceElement === undefined) {
         _isModalOpen = true;
@@ -845,7 +847,7 @@ document.addEventListener('keyup', (e) => {
                 importNotes(notes);
             });
         }
-        else if (e.key === "Alt" || e.key === "Control" || e.key === "F12" || e.key === "Tab" ||
+        else if (e.key === "Alt" || e.key === "Control" || e.key === "Shift" || e.key === "F12" || e.key === "Tab" ||
             (e.ctrlKey && (e.key === "w" || e.key === "r")) ||
             (e.shiftKey && e.key === "s")) {
         }
