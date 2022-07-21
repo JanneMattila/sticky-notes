@@ -427,10 +427,21 @@ const createOrUpdateNoteElement = (element, note) => {
         _isModalOpen = true;
 
         const modalElement = document.getElementById("noteMenuModal");
+        const noteMenuOpenLinkElement = document.getElementById("noteMenuOpenLink");
         const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
         const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
 
         let newDialogOpened = false;
+        const menuOpenLinkButtonClick = e => {
+            modal.hide();
+
+            newDialogOpened = true;
+            _isModalOpen = false;
+
+            if (note.link !== undefined && note.link !== "") {
+                window.open(note.link, "_blank");
+            }
+        }
         const menuEditNoteButtonClick = e => {
             modal.hide();
 
@@ -459,11 +470,13 @@ const createOrUpdateNoteElement = (element, note) => {
             if (!newDialogOpened) {
                 _isModalOpen = false;
             }
+            noteMenuOpenLinkElement.removeEventListener("click", menuOpenLinkButtonClick);
             noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
             noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
+        noteMenuOpenLinkElement.addEventListener("click", menuOpenLinkButtonClick);
         noteMenuEditNoteElement.addEventListener("click", menuEditNoteButtonClick);
         noteMenuDeleteNoteElement.addEventListener("click", menuDeleteNoteButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
