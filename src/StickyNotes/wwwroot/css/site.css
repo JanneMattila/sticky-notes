@@ -9,7 +9,13 @@ html, body {
     touch-action: none;
     overscroll-behavior: none;
     font-family: sn-font, Verdana, Arial;
+
+    scrollbar-width: none; /* Firefox */
 }
+
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+        display: none;
+    }
 
 .noTextSelect {
     /* Prevent text selection */
