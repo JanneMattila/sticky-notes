@@ -515,7 +515,7 @@ const calculateNoteSize = text => {
     return { width, height };
 }
 
-const addNote = (noteText, noteLink, color) => {
+const addNote = (noteText, noteLink, color, first) => {
     const size = calculateNoteSize(noteText);
     let note = {
         id: generateId(),
@@ -523,8 +523,8 @@ const addNote = (noteText, noteLink, color) => {
         link: noteLink,
         color: color,
         position: {
-            x: _currentX - 100 + 200 * Math.random(),
-            y: _currentY - 100 + 200 * Math.random(),
+            x: first ? _currentX : _currentX - 100 + 200 * Math.random(),
+            y: first ? _currentY : _currentY - 100 + 200 * Math.random(),
             z: 100,
             rotation: Math.floor(Math.random() * 8) - 4
         },
@@ -605,7 +605,7 @@ const showNoteDialog = () => {
 
         for (let i = 0; i < addedNotes.length; i++) {
             const addedNote = addedNotes[i];
-            addNote(addedNote.text, addedNote.link, addedNote.color);
+            addNote(addedNote.text, addedNote.link, addedNote.color, i === 0 /* is first note to be added */);
         }
     }
 
