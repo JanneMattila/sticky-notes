@@ -439,11 +439,22 @@ const createOrUpdateNoteElement = (element, note) => {
 
         const modalElement = document.getElementById("noteMenuModal");
         const noteMenuOpenLinkElement = document.getElementById("noteMenuOpenLink");
+        const noteMenuOpenLinkNewWindowElement = document.getElementById("noteMenuOpenLinkNewWindow");
         const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
         const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
 
         let newDialogOpened = false;
         const menuOpenLinkButtonClick = e => {
+            modal.hide();
+
+            newDialogOpened = true;
+            _isModalOpen = false;
+
+            if (note.link !== undefined && note.link !== "") {
+                document.location.href = note.link;
+            }
+        }
+        const menuOpenLinkNewWindowButtonClick = e => {
             modal.hide();
 
             newDialogOpened = true;
@@ -482,12 +493,14 @@ const createOrUpdateNoteElement = (element, note) => {
                 _isModalOpen = false;
             }
             noteMenuOpenLinkElement.removeEventListener("click", menuOpenLinkButtonClick);
+            noteMenuOpenLinkNewWindowElement.removeEventListener("click", menuOpenLinkNewWindowButtonClick);
             noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
             noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
         noteMenuOpenLinkElement.addEventListener("click", menuOpenLinkButtonClick);
+        noteMenuOpenLinkNewWindowElement.addEventListener("click", menuOpenLinkNewWindowButtonClick);
         noteMenuEditNoteElement.addEventListener("click", menuEditNoteButtonClick);
         noteMenuDeleteNoteElement.addEventListener("click", menuDeleteNoteButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
@@ -858,8 +871,9 @@ document.addEventListener('keyup', (e) => {
             });
         }
         else if (e.key === "Alt" || e.key === "Control" || e.key === "Shift" || e.key === "F12" || e.key === "Tab" ||
-            (e.ctrlKey && (e.key === "w" || e.key === "r")) ||
-            (e.shiftKey && e.key === "s")) {
+            (e.ctrlKey && (e.key === "r")) ||
+            (e.shiftKey && e.key === "s") ||
+            e.key === "w" || e.key === "c" || e.key === "v") {
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
             deleteAllNotesByClassFilter("selected", true);

@@ -15,17 +15,17 @@
 
                 <label for="noteColor" class="form-label">Color</label>
                 <select id="noteColor" class="form-select" aria-label="Select color">
-                  <option value="lightyellow" style="background-color: lightyellow">Light yellow</option>
-                  <option value="lightgreen" style="background-color: lightgreen">Light green</option>
-                  <option value="lightblue" style="background-color: lightblue">Light blue</option>
-                  <option value="lightpink" style="background-color: lightpink">Light pink</option>
-                  <option value="lightgray" style="background-color: lightgray">Light gray</option>
-                  <option value="cyan" style="background-color: cyan">Cyan</option>
-                  <option value="beige" style="background-color: beige">Beige</option>
-                  <option value="violet" style="background-color: violet">Violet</option>
-                  <option value="magenta" style="background-color: magenta">Magenta</option>
-                  <option value="orange" style="background-color: orange">Orange</option>
-                  <option value="red" style="background-color: red">Red</option>
+                    <option value="lightyellow" style="background-color: lightyellow">Light yellow</option>
+                    <option value="lightgreen" style="background-color: lightgreen">Light green</option>
+                    <option value="lightblue" style="background-color: lightblue">Light blue</option>
+                    <option value="lightpink" style="background-color: lightpink">Light pink</option>
+                    <option value="lightgray" style="background-color: lightgray">Light gray</option>
+                    <option value="cyan" style="background-color: cyan">Cyan</option>
+                    <option value="beige" style="background-color: beige">Beige</option>
+                    <option value="violet" style="background-color: violet">Violet</option>
+                    <option value="magenta" style="background-color: magenta">Magenta</option>
+                    <option value="orange" style="background-color: orange">Orange</option>
+                    <option value="red" style="background-color: red">Red</option>
                 </select>
             </div>
             <div class="modal-footer">
@@ -45,11 +45,19 @@
             </div>
             <div class="modal-body">
                 <div class="d-grid gap-2">
-                <button class="btn btn-primary" type="button" id="noteMenuOpenLink">Open link</button>
-                  <hr/>
-                  <button class="btn btn-success" type="button" id="noteMenuEditNote">Edit note</button>
-                  <hr/>
-                  <button class="btn btn-warning" type="button" id="noteMenuDeleteNote">Delete note</button>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" type="button" id="noteMenuOpenLink">Open link</button>
+                        <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden-focusable">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><button class="dropdown-item" type="button" id="noteMenuOpenLinkNewWindow">Open link in new window</button></li>
+                        </ul>
+                    </div>
+                    <hr />
+                    <button class="btn btn-success" type="button" id="noteMenuEditNote">Edit note</button>
+                    <hr />
+                    <button class="btn btn-warning" type="button" id="noteMenuDeleteNote">Delete note</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -68,13 +76,13 @@
             </div>
             <div class="modal-body">
                 <div class="d-grid gap-2">
-                  <button class="btn btn-primary" type="button" id="menuAddNotes">Add notes</button>
-                  <hr/>
-                  <button class="btn btn-success" type="button"  id="menuZoomOut">Zoom out</button>
-                  <hr/>
-                  <button class="btn btn-secondary" type="button"  id="menuStartNewSession">Start new session</button>
-                  <hr/>
-                  <button class="btn btn-danger" type="button" id="menuRemoveAllNotes">Remove all notes</button>
+                    <button class="btn btn-primary" type="button" id="menuAddNotes">Add notes</button>
+                    <hr />
+                    <button class="btn btn-success" type="button" id="menuZoomOut">Zoom out</button>
+                    <hr />
+                    <button class="btn btn-secondary" type="button" id="menuStartNewSession">Start new session</button>
+                    <hr />
+                    <button class="btn btn-danger" type="button" id="menuRemoveAllNotes">Remove all notes</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -92,7 +100,7 @@
             </div>
             <div class="modal-body">
                 <div class="d-grid gap-2">
-                  It seems we lost the connection. Click refresh to try again.
+                    It seems we lost the connection. Click refresh to try again.
                 </div>
             </div>
             <div class="modal-footer">
