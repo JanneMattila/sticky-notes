@@ -441,9 +441,28 @@ const createOrUpdateNoteElement = (element, note) => {
         const noteMenuOpenLinkElement = document.getElementById("noteMenuOpenLink");
         const noteMenuOpenLinkNewWindowElement = document.getElementById("noteMenuOpenLinkNewWindow");
         const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
+        const noteMenuBringToFrontElement = document.getElementById("noteMenuBringToFront");
+        const noteMenuSendToBackElement = document.getElementById("noteMenuSendToBack");
         const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
 
         let newDialogOpened = false;
+        const setZIndex = bringToFront => {
+            modal.hide();
+
+            newDialogOpened = true;
+            _isModalOpen = false;
+
+            let minZ = 9999999999, maxZ = -9999999999;
+            const elements = document.getElementsByClassName("stickynote");
+            for (let i = 0; i < elements.length; i++) {
+                const zIndex = Math.floor(elements[i].style.zIndex);
+                if (zIndex < minZ) minZ = zIndex;
+                if (zIndex > maxZ) maxZ = zIndex;
+            }
+
+            element.style.zIndex = bringToFront ? maxZ + 1 : minZ - 1;
+            updateNoteElementsToServer([element]);
+        }
         const menuOpenLinkButtonClick = e => {
             modal.hide();
 
@@ -471,6 +490,12 @@ const createOrUpdateNoteElement = (element, note) => {
             _isModalOpen = false;
             editNoteMenu(element, note);
         }
+        const menuBringToFrontButtonClick = e => {
+            setZIndex(true);
+        }
+        const menuSendToBackButtonClick = e => {
+            setZIndex(false);
+        }
         const menuDeleteNoteButtonClick = e => {
             modal.hide();
 
@@ -495,6 +520,8 @@ const createOrUpdateNoteElement = (element, note) => {
             noteMenuOpenLinkElement.removeEventListener("click", menuOpenLinkButtonClick);
             noteMenuOpenLinkNewWindowElement.removeEventListener("click", menuOpenLinkNewWindowButtonClick);
             noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
+            noteMenuBringToFrontElement.removeEventListener("click", menuBringToFrontButtonClick);
+            noteMenuSendToBackElement.removeEventListener("click", menuSendToBackButtonClick);
             noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
@@ -502,6 +529,8 @@ const createOrUpdateNoteElement = (element, note) => {
         noteMenuOpenLinkElement.addEventListener("click", menuOpenLinkButtonClick);
         noteMenuOpenLinkNewWindowElement.addEventListener("click", menuOpenLinkNewWindowButtonClick);
         noteMenuEditNoteElement.addEventListener("click", menuEditNoteButtonClick);
+        noteMenuBringToFrontElement.addEventListener("click", menuBringToFrontButtonClick);
+        noteMenuSendToBackElement.addEventListener("click", menuSendToBackButtonClick);
         noteMenuDeleteNoteElement.addEventListener("click", menuDeleteNoteButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
