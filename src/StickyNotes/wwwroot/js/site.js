@@ -165,17 +165,27 @@ const convertElementToNote = (element) => {
 
 const importNotes = notes => {
     if (notes !== undefined && notes.length !== undefined) {
+        deSelectNotes();
+
         const elementsCreated = [];
+        let minX = 9999999999, maxX = -9999999999, minY = 9999999999, maxY = -9999999999;
+        for (let i = 0; i < notes.length; i++) {
+            const note = notes[i];
+
+            if (note.position.x < minX) minX = note.position.x;
+            if (note.position.y < minY) minY = note.position.y;
+        }
         for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
             note.id = generateId();
-            note.position.x += 100;
-            note.position.y += 100;
+            note.position.x += 100 - minX;
+            note.position.y += 100 - minY;
             note.position.rotation = Math.floor(Math.random() * 8) - 4;
             let element = document.createElement('div');
             createOrUpdateNoteElement(element, note);
             _notesElement.insertBefore(element, _notesElement.firstChild);
             elementsCreated.push(element);
+            element.classList.add("selected");
         }
 
         if (elementsCreated.length > 0) {
