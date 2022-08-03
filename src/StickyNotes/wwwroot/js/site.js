@@ -48,29 +48,27 @@ const parseQueryString = () => {
 
 const getId = async () => {
 
-    if (document.location.search !== "") {
+    const queryString = parseQueryString();
+    const importUri = queryString.get("import");
+    if (importUri !== undefined) {
         _imported = true;
-        const queryString = parseQueryString();
-        const importUri = queryString.get("import");
-        if (importUri !== undefined) {
-            console.log(importUri);
-            const response = await fetch(importUri);
-            if (response.status === 200) {
-                console.log(response.status);
-                const json = await response.json();
-                console.log(json);
-                importNotes(json);
-                zoomOut(json);
-            }
+
+        console.log(importUri);
+        const response = await fetch(importUri);
+        if (response.status === 200) {
+            console.log(response.status);
+            const json = await response.json();
+            console.log(json);
+            importNotes(json);
+            zoomOut(json);
         }
         return;
     }
-    else {
-        _id = document.location.hash.replace("#", "");
-        if (_id.length === 0) {
-            _id = generateId();
-            document.location.hash = _id;
-        }
+
+    _id = document.location.hash.replace("#", "");
+    if (_id.length === 0) {
+        _id = generateId();
+        document.location.hash = _id;
     }
 
     document.querySelector('meta[property="og:url"]').setAttribute("content", document.location.href);
@@ -78,35 +76,34 @@ const getId = async () => {
 
 getId();
 
-window.addEventListener("hashchange", e => {
+window.addEventListener("hashchange", async e => {
     if (e.oldURL.indexOf("#") != -1) {
         console.log("hashchange event occured!");
-        connection.invoke("Leave", _id)
-            .then(function () {
-                console.log("Leave called");
 
-                getId();
-                console.log(_id);
+        try {
+            await connection.invoke("Leave", _id);
+            console.log("Leave called");
+            getId();
+            console.log(_id);
 
-                const matches = document.getElementsByClassName("stickynote");
-                while (matches.length > 0) {
-                    _notesElement.removeChild(matches[0]);
-                }
-                _selectedElement = _selectedElement = undefined;
-                _pointers = [];
-                _scale = 1;
-                _isMove = false;
-                _isResize = false;
-                _isModalOpen = false;
-                _coordinateAdjustX = _coordinateAdjustY = 0;
+            const matches = document.getElementsByClassName("stickynote");
+            while (matches.length > 0) {
+                _notesElement.removeChild(matches[0]);
+            }
+            _selectedElement = _selectedElement = undefined;
+            _pointers = [];
+            _scale = 1;
+            _isMove = false;
+            _isResize = false;
+            _isModalOpen = false;
+            _coordinateAdjustX = _coordinateAdjustY = 0;
 
-                connection.invoke("Join", _id);
-            })
-            .catch(function (err) {
-                console.log("Leave error");
-                console.log(err);
-                showErrorDialog();
-            });
+            await connection.invoke("Join", _id);
+        } catch (err) {
+            console.log("Leave error");
+            console.log(err);
+            showErrorDialog();
+        }
     }
 });
 
@@ -194,7 +191,7 @@ const importNotes = notes => {
     }
 }
 
-const updateNoteElementsToServer = (elements) => {
+const updateNoteElementsToServer = async (elements) => {
     if (_imported) return;
 
     let notes = [];
@@ -203,15 +200,15 @@ const updateNoteElementsToServer = (elements) => {
         let note = convertElementToNote(element);
         notes.push(note);
     }
-    connection.invoke("UpdateNotes", _id, notes)
-        .then(function () {
-            console.log("updateNoteMove called", notes);
-        })
-        .catch(function (err) {
-            console.log("updateNoteMove error");
-            console.log(err);
-            showErrorDialog();
-        });
+
+    try {
+        await connection.invoke("UpdateNotes", _id, notes);
+        console.log("updateNoteMove called", notes);
+    } catch (err) {
+        console.log("updateNoteMove error");
+        console.log(err);
+        showErrorDialog();
+    }
 }
 
 const pointerMove = e => {
@@ -557,7 +554,7 @@ const calculateNoteSize = text => {
     return { width, height };
 }
 
-const addNote = (noteText, noteLink, color, first) => {
+const addNote = async (noteText, noteLink, color, first) => {
     const size = calculateNoteSize(noteText);
     let note = {
         id: generateId(),
@@ -577,7 +574,7 @@ const addNote = (noteText, noteLink, color, first) => {
     createOrUpdateNoteElement(element, note);
     _notesElement.insertBefore(element, _notesElement.firstChild);
 
-    updateNoteElementsToServer([element]);
+    await updateNoteElementsToServer([element]);
 }
 
 const deleteAllNotesByClassFilter = (filter, remove) => {
@@ -691,6 +688,7 @@ window.addEventListener('contextmenu', e => {
         const menuAddNotesElement = document.getElementById("menuAddNotes");
         const menuZoomOutElement = document.getElementById("menuZoomOut");
         const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
+        const menuStartNewSessionWithLinkElement = document.getElementById("menuStartNewSessionWithLink");
         const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
 
         let newDialogOpened = false;
@@ -711,6 +709,15 @@ window.addEventListener('contextmenu', e => {
             _id = generateId();
             document.location.hash = _id;
         }
+        const menuStartNewSessionWithLinkButtonClick = async e => {
+            modal.hide();
+
+            const currentId = _id;
+            const newId = generateId();
+
+            await addNote("Next", `#${newId}`, "lightblue", true);
+            document.location.href = `?parent=${currentId}#${newId}`;
+        }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
 
@@ -726,6 +733,7 @@ window.addEventListener('contextmenu', e => {
             menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
             menuZoomOutElement.removeEventListener("click", menuZoomOutClick);
             menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
+            menuStartNewSessionWithLinkElement.removeEventListener("click", menuStartNewSessionWithLinkButtonClick);
             menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
@@ -733,6 +741,7 @@ window.addEventListener('contextmenu', e => {
         menuAddNotesElement.addEventListener("click", menuAddNotesButtonClick);
         menuZoomOutElement.addEventListener("click", menuZoomOutClick);
         menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
+        menuStartNewSessionWithLinkElement.addEventListener("click", menuStartNewSessionWithLinkButtonClick);
         menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
@@ -758,9 +767,16 @@ const startConnection = () => {
     if (_imported) return;
 
     connection.start()
-        .then(function () {
+        .then(async () => {
             // Connected
             connection.invoke("Join", _id);
+
+            const queryString = parseQueryString();
+            const parentUri = queryString.get("parent");
+            if (parentUri !== undefined) {
+                await addNote("Previous", `#${parentUri}`, "lightblue", true);
+                document.location.replace(`/#${_id}`);
+            }
         })
         .catch(function (err) {
             console.log(err);

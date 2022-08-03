@@ -85,7 +85,15 @@
                     <hr />
                     <button class="btn btn-success" type="button" id="menuZoomOut">Zoom out</button>
                     <hr />
-                    <button class="btn btn-secondary" type="button" id="menuStartNewSession">Start new session</button>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" type="button" id="menuStartNewSession">Start new session</button>
+                        <button class="btn btn-secondary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden-focusable">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><button class="dropdown-item" type="button" id="menuStartNewSessionWithLink">Start new session with link to this session</button></li>
+                        </ul>
+                    </div>
                     <hr />
                     <button class="btn btn-danger" type="button" id="menuRemoveAllNotes">Remove all notes</button>
                 </div>
