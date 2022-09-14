@@ -4,13 +4,40 @@
 }
 
 html, body {
+    --background-color: white;
+    --note-border: 1px solid rgba(0,0,0,0.4);
+    --note-box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
+    --note-selected-border: 2px solid rgba(0,0,0,0.8);
+    --note-selected-box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
+    --dialog--background-color: white;
+    --dialog--foreground-color: black;
+    background-color: var(--background-color);
     margin: 0px;
     position: absolute;
     touch-action: none;
     overscroll-behavior: none;
     font-family: sn-font, Verdana, Arial;
-
     scrollbar-width: none; /* Firefox */
+}
+
+.light {
+    --background-color: white;
+    --note-border: 1px solid rgba(0,0,0,0.4);
+    --note-box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
+    --note-selected-border: 2px solid rgba(0,0,0,0.8);
+    --note-selected-box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
+    --dialog--background-color: white;
+    --dialog--foreground-color: black;
+}
+
+.dark {
+    --background-color: #0C1116;
+    --note-border: 1px solid rgba(255,255,255,0.4);
+    --note-box-shadow: 2px 2px 5px 0 rgba(255,255,255, 0.4);
+    --note-selected-border: 2px solid rgba(255,255,255,0.8);
+    --note-selected-box-shadow: 5px 5px 10px 0 rgba(255,255,255, 0.4);
+    --dialog--background-color: #161B22;
+    --dialog--foreground-color: #FFFFFF;
 }
 
     html::-webkit-scrollbar, body::-webkit-scrollbar {
@@ -33,11 +60,11 @@ html, body {
     position: absolute;
     z-index: 100;
     background-color: lightyellow;
-    border: 1px solid rgba(0,0,0,0.4);
+    border: var(--note-border);
     min-width: 100px;
     min-height: 100px;
     touch-action: none;
-    box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.2);
+    box-shadow: var(--note-box-shadow);
     overflow: hidden;
     word-wrap: break-word;
     font-size: 24px;
@@ -51,6 +78,11 @@ html, body {
 }
 
 .selected {
-    border: 2px solid rgba(0,0,0,0.8);
-    box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
+    border: var(--note-selected-border);
+    box-shadow: var(--note-selected-box-shadow);
+}
+
+.dialogBackground {
+    background-color: var(--dialog--background-color);
+    color: var(--dialog--foreground-color);
 }

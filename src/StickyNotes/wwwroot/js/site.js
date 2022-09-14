@@ -690,6 +690,7 @@ window.addEventListener('contextmenu', e => {
         const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
         const menuStartNewSessionWithLinkElement = document.getElementById("menuStartNewSessionWithLink");
         const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
+        const menuThemeElement = document.getElementById("menuThemeButton");
 
         let newDialogOpened = false;
         const menuAddNotesButtonClick = e => {
@@ -725,6 +726,22 @@ window.addEventListener('contextmenu', e => {
                 deleteAllNotesByClassFilter("stickynote", true);
             }
         }
+        const menuThemeButtonClick = e => {
+            let theme = localStorage.getItem("theme");
+            if (theme == null || theme === "light") {
+                theme = "dark";
+            }
+            else {
+                theme = "light";
+            }
+
+            localStorage.setItem("theme", theme);
+
+            document.getElementsByTagName("html")[0].className = theme;
+            document.body.classList.remove("dark");
+            document.body.classList.remove("light");
+            document.body.classList.add(theme);
+        }
 
         const dialogClosed = e => {
             if (!newDialogOpened) {
@@ -735,6 +752,7 @@ window.addEventListener('contextmenu', e => {
             menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
             menuStartNewSessionWithLinkElement.removeEventListener("click", menuStartNewSessionWithLinkButtonClick);
             menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
+            menuThemeElement.removeEventListener("click", menuThemeButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
 
@@ -743,6 +761,7 @@ window.addEventListener('contextmenu', e => {
         menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
         menuStartNewSessionWithLinkElement.addEventListener("click", menuStartNewSessionWithLinkButtonClick);
         menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
+        menuThemeElement.addEventListener("click", menuThemeButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
         const modal = new bootstrap.Modal(modalElement);
@@ -964,3 +983,10 @@ if (navigator && navigator.locks && navigator.locks.request) {
 }
 
 startConnection();
+
+const startTheme = localStorage.getItem("theme");
+if (startTheme != null) {
+    console.log(startTheme);
+    document.getElementsByTagName("html")[0].className = startTheme;
+    document.body.classList.add(startTheme);
+}
