@@ -362,7 +362,7 @@ let connection = new signalR.HubConnectionBuilder()
 const editNoteMenu = (element, note) => {
     _isModalOpen = true;
 
-    const modalElement = document.getElementById("colorModal");
+    const modalElement = document.getElementById("noteModal");
     const noteTextElement = document.getElementById("noteText");
     const noteLinkElement = document.getElementById("noteLink");
     const noteColorSelectElement = document.getElementById("noteColor");
@@ -409,6 +409,41 @@ const editNoteMenu = (element, note) => {
     modal.show();
 };
 
+const editNoteSettings = (element, note) => {
+    _isModalOpen = true;
+
+    const modalElement = document.getElementById("noteSettingsModal");
+    const noteRotationElement = document.getElementById("noteRotation");
+    const updateNoteSettingsButtonElement = document.getElementById("updateNoteSettingsButton");
+
+    const updateNoteSaveButtonClick = e => {
+        modal.hide();
+
+        const isRotationUpdated = noteRotationElement.value !== note.position.rotation;
+        if (isRotationUpdated) {
+            note.position.rotation = noteRotationElement.value;
+            element.style.transform = `rotateZ(${note.position.rotation}deg)`;
+        }
+
+        updateNoteElementsToServer([element]);
+    }
+
+    const dialogClosed = e => {
+        _isModalOpen = false;
+
+        updateNoteSettingsButtonElement.removeEventListener("click", updateNoteSaveButtonClick);
+        modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+    }
+
+    updateNoteSettingsButtonElement.addEventListener("click", updateNoteSaveButtonClick);
+    modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+    noteRotationElement.value = note.position.rotation;
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+};
+
 const createOrUpdateNoteElement = (element, note) => {
     element.id = note.id;
     element.innerText = note.text;
@@ -440,6 +475,7 @@ const createOrUpdateNoteElement = (element, note) => {
         const noteMenuEditNoteElement = document.getElementById("noteMenuEditNote");
         const noteMenuBringToFrontElement = document.getElementById("noteMenuBringToFront");
         const noteMenuSendToBackElement = document.getElementById("noteMenuSendToBack");
+        const noteMenuNoteSettingsElement = document.getElementById("noteMenuNoteSettings");
         const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
 
         let newDialogOpened = false;
@@ -509,7 +545,13 @@ const createOrUpdateNoteElement = (element, note) => {
                 _notesElement.removeChild(element);
             }
         }
+        const menuNoteSettings = e => {
+            modal.hide();
 
+            newDialogOpened = true;
+            _isModalOpen = false;
+            editNoteSettings(element, note);
+        }
         const dialogClosed = e => {
             if (!newDialogOpened) {
                 _isModalOpen = false;
@@ -519,6 +561,7 @@ const createOrUpdateNoteElement = (element, note) => {
             noteMenuEditNoteElement.removeEventListener("click", menuEditNoteButtonClick);
             noteMenuBringToFrontElement.removeEventListener("click", menuBringToFrontButtonClick);
             noteMenuSendToBackElement.removeEventListener("click", menuSendToBackButtonClick);
+            noteMenuNoteSettingsElement.removeEventListener("click", menuNoteSettings);
             noteMenuDeleteNoteElement.removeEventListener("click", menuDeleteNoteButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
         }
@@ -528,6 +571,7 @@ const createOrUpdateNoteElement = (element, note) => {
         noteMenuEditNoteElement.addEventListener("click", menuEditNoteButtonClick);
         noteMenuBringToFrontElement.addEventListener("click", menuBringToFrontButtonClick);
         noteMenuSendToBackElement.addEventListener("click", menuSendToBackButtonClick);
+        noteMenuNoteSettingsElement.addEventListener("click", menuNoteSettings);
         noteMenuDeleteNoteElement.addEventListener("click", menuDeleteNoteButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
 
@@ -607,7 +651,7 @@ const showNoteDialog = () => {
     }
 
     _isModalOpen = true;
-    const modalElement = document.getElementById("colorModal");
+    const modalElement = document.getElementById("noteModal");
     const noteTextElement = document.getElementById("noteText");
     const noteLinkElement = document.getElementById("noteLink");
     const noteColorSelectElement = document.getElementById("noteColor");

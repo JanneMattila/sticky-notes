@@ -1,8 +1,8 @@
-﻿<div class="modal fade noTextSelect" id="colorModal" tabindex="-1" aria-labelledby="colorodalLabel" aria-hidden="true">
+﻿<div class="modal fade noTextSelect" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content dialogBackground">
             <div class="modal-header">
-                <h5 class="modal-title" id="colorModalLabel">Note</h5>
+                <h5 class="modal-title" id="noteModalLabel">Note</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -36,6 +36,25 @@
     </div>
 </div>
 
+<div class="modal fade noTextSelect" id="noteSettingsModal" tabindex="-1" aria-labelledby="noteSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content dialogBackground">
+            <div class="modal-header">
+                <h5 class="modal-title" id="colorModalLabel">Note settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="noteRotation" class="form-label">Rotation</label>
+                <input type="range" class="form-range" min="-4" max="4" step="1" id="noteRotation">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateNoteSettingsButton">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade noTextSelect" id="noteMenuModal" tabindex="-1" aria-labelledby="noteContextMenuModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content dialogBackground">
@@ -61,6 +80,7 @@
                         <button class="btn btn-secondary" type="button" id="noteMenuBringToFront">Bring to front</button>
                         <button class="btn btn-secondary" type="button" id="noteMenuSendToBack">Send to back</button>
                     </div>
+                    <button class="btn btn-secondary" type="button" id="noteMenuNoteSettings">Settings</button>
                     <hr />
                     <button class="btn btn-danger" type="button" id="noteMenuDeleteNote">Delete note</button>
                 </div>
