@@ -78,37 +78,6 @@ const getId = async () => {
 
 getId();
 
-window.addEventListener("hashchange", async e => {
-    if (e.oldURL.indexOf("#") != -1) {
-        console.log("hashchange event occured!");
-
-        try {
-            await connection.invoke("Leave", _id);
-            console.log("Leave called");
-            getId();
-            console.log(_id);
-
-            const matches = document.getElementsByClassName("stickynote");
-            while (matches.length > 0) {
-                _notesElement.removeChild(matches[0]);
-            }
-            _selectedElement = _selectedElement = undefined;
-            _pointers = [];
-            _scale = 1;
-            _isMove = false;
-            _isResize = false;
-            _isModalOpen = false;
-            _coordinateAdjustX = _coordinateAdjustY = 0;
-
-            await connection.invoke("Join", _id);
-        } catch (err) {
-            console.log("Leave error");
-            console.log(err);
-            showErrorDialog();
-        }
-    }
-});
-
 const deSelectNotes = () => {
     const matches = document.getElementsByClassName("selected");
     while (matches.length > 0) {
@@ -758,7 +727,7 @@ window.addEventListener('contextmenu', e => {
             modal.hide();
 
             _id = generateId();
-            document.location.hash = _id;
+            document.location.href = `${StickyNotes.WwwRoot}${_id}`;
         }
         const menuStartNewSessionWithLinkButtonClick = async e => {
             modal.hide();
