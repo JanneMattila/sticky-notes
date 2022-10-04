@@ -1,4 +1,6 @@
-﻿let _notesElement = document.getElementById("notes");
+﻿console.log(`StickyNotes.WwwRoot: ${StickyNotes.WwwRoot}`);
+
+let _notesElement = document.getElementById("notes");
 
 let _id;
 let _scale = 1;
@@ -48,15 +50,16 @@ const parseQueryString = () => {
 
 const getId = async () => {
 
-    const queryString = parseQueryString();
-    const importUri = queryString.get("import");
-    if (importUri !== undefined) {
+    _id = document.location.pathname.substring(StickyNotes.WwwRoot.length);
+    if (_id.indexOf('/') > 0) {
         _imported = true;
 
+        const importUri = _id;
         console.log(importUri);
-        const response = await fetch(importUri);
+        const response = await fetch(`https://${importUri}`);
         if (response.status === 200) {
             console.log(response.status);
+
             const json = await response.json();
             console.log(json);
             importNotes(json);
@@ -65,10 +68,9 @@ const getId = async () => {
         return;
     }
 
-    _id = document.location.hash.replace("#", "");
     if (_id.length === 0) {
         _id = generateId();
-        document.location.hash = _id;
+        document.location.pathname = `${StickyNotes.WwwRoot}${_id}`;
     }
 
     document.querySelector('meta[property="og:url"]').setAttribute("content", document.location.href);
@@ -352,7 +354,7 @@ window.addEventListener("wheel", e => {
 });
 
 let protocol = new signalR.JsonHubProtocol();
-let hubRoute = "Notes";
+let hubRoute = `${StickyNotes.WwwRoot}Notes`;
 let connection = new signalR.HubConnectionBuilder()
     .withUrl(hubRoute)
     .withAutomaticReconnect()
@@ -760,8 +762,8 @@ window.addEventListener('contextmenu', e => {
             const currentId = _id;
             const newId = generateId();
 
-            await addNote("Next", `#${newId}`, "lightblue", true);
-            document.location.href = `?parent=${currentId}#${newId}`;
+            await addNote("Next", `${newId}`, "lightblue", true);
+            document.location.href = `${StickyNotes.WwwRoot}${newId}?parent=${currentId}`;
         }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
@@ -837,8 +839,8 @@ const startConnection = () => {
             const queryString = parseQueryString();
             const parentUri = queryString.get("parent");
             if (parentUri !== undefined) {
-                await addNote("Previous", `#${parentUri}`, "lightblue", true);
-                document.location.replace(`/#${_id}`);
+                await addNote("Previous", `${parentUri}`, "lightblue", true);
+                document.location.replace(`${StickyNotes.WwwRoot}${_id}`);
             }
         })
         .catch(function (err) {

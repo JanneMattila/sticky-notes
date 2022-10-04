@@ -19,6 +19,11 @@
     <environment exclude="Development">
         <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     </environment>
+    <script>
+        var StickyNotes = StickyNotes || {};
+        StickyNotes.WwwRoot = "@Url.Content("~/")";
+        console.log(`StickyNotes.WwwRoot: ${StickyNotes.WwwRoot}`);
+    </script>
 </head>
 <body>
     @RenderBody()

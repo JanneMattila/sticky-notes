@@ -59,10 +59,11 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapHub<NotesHub>("Notes");
             endpoints.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Pages}/{action=Index}/{id?}");
-            endpoints.MapHub<NotesHub>("Notes");
+                pattern: "{*path}",
+                 defaults: new { controller = "Pages", action = "Index" });
         });
     }
 }
