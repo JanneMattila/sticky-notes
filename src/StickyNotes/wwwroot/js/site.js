@@ -538,14 +538,16 @@ const createOrUpdateNoteElement = (element, note) => {
 
             console.log(note.id);
             if (confirm("Do you really want to delete this note?")) {
-                connection.invoke("DeleteNotes", _id, [note.id])
-                    .then(function () {
-                        console.log("DeleteNotes called");
-                    })
-                    .catch(function (err) {
-                        console.log("DeleteNotes error");
-                        console.log(err);
-                    });
+                if (!_imported) {
+                    connection.invoke("DeleteNotes", _id, [note.id])
+                        .then(function () {
+                            console.log("DeleteNotes called");
+                        })
+                        .catch(function (err) {
+                            console.log("DeleteNotes error");
+                            console.log(err);
+                        });
+                }
                 _notesElement.removeChild(element);
             }
         }
@@ -633,7 +635,7 @@ const deleteAllNotesByClassFilter = (filter, remove) => {
         _notesElement.removeChild(matches[0]);
     }
 
-    if (remove) {
+    if (remove && !_imported) {
         connection.invoke("DeleteNotes", _id, noteIds)
             .then(function () {
                 console.log("DeleteNotes by filter called");
