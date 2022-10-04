@@ -62,7 +62,7 @@ const getId = async () => {
 
             const json = await response.json();
             console.log(json);
-            importNotes(json);
+            importNotes(json, false);
             zoomOut(json);
         }
         return;
@@ -162,7 +162,7 @@ const convertElementToNote = (element) => {
     };
 }
 
-const importNotes = notes => {
+const importNotes = (notes, randomize) => {
     if (notes !== undefined && notes.length !== undefined) {
         deSelectNotes();
 
@@ -176,10 +176,12 @@ const importNotes = notes => {
         }
         for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
-            note.id = generateId();
-            note.position.x += 100 - minX;
-            note.position.y += 100 - minY;
-            note.position.rotation = Math.floor(Math.random() * 8) - 4;
+            if (randomize) {
+                note.id = generateId();
+                note.position.x += 100 - minX;
+                note.position.y += 100 - minY;
+                note.position.rotation = Math.floor(Math.random() * 8) - 4;
+            }
             let element = document.createElement('div');
             createOrUpdateNoteElement(element, note);
             _notesElement.insertBefore(element, _notesElement.firstChild);
@@ -977,7 +979,7 @@ document.addEventListener('keyup', (e) => {
                 json = sessionStorage.getItem("copy");
             }).then(() => {
                 const notes = JSON.parse(json);
-                importNotes(notes);
+                importNotes(notes, true);
             });
         }
         else if (e.key === "Alt" || e.key === "Control" || e.key === "Shift" || e.key === "F12" || e.key === "Tab" ||
