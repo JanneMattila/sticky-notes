@@ -958,7 +958,7 @@ document.addEventListener('keyup', (e) => {
                 notes.push(convertElementToNote(selectedlement));
             }
 
-            const json = JSON.stringify(notes);
+            const json = JSON.stringify(notes, null, 2);
             navigator.clipboard.writeText(json).then(() => {
                 // Clipboard successfully set
             }, () => {
