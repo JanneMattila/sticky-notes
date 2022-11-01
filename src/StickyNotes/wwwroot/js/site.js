@@ -432,7 +432,12 @@ const createOrUpdateNoteElement = (element, note) => {
     element.addEventListener("pointerdown", pointerDown, { passive: true });
     element.addEventListener("dblclick", e => {
         _pointers = [];
-        editNoteMenu(element, note);
+        if (e.ctrlKey && note.link !== undefined && note.link !== "") {
+            window.open(note.link, "_blank");
+        }
+        else {
+            editNoteMenu(element, note);
+        }
     });
     element.addEventListener("contextmenu", e => {
         if (_isModalOpen) return;
