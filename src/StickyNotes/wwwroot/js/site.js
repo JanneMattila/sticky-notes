@@ -958,10 +958,10 @@ document.addEventListener('keyup', (e) => {
                 importNotes(notes, true);
             });
         }
-        else if (e.key === "Alt" || e.key === "Control" || e.key === "Shift" || e.key === "F12" || e.key === "Tab" ||
-            (e.ctrlKey && (e.key === "r")) ||
-            (e.shiftKey && e.key === "s") ||
-            e.key === "w" || e.key === "c" || e.key === "v") {
+        else if (e.metaKey || e.shiftKey || e.ctrlKey ||
+            e.key === "Alt" || e.key === "Control" || e.key === "Shift" ||
+            e.key === "F12" || e.key === "Tab" || e.key === "Meta") {
+            // Ignore
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
             deleteAllNotesByClassFilter("selected", true);
