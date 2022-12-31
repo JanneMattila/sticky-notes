@@ -4,6 +4,7 @@ let _notesElement = document.getElementById("notes");
 
 let _id;
 let _scale = 1;
+let _originalScale = 1;
 let _isMove = false;
 let _isResize = false;
 let _isModalOpen = false;
@@ -866,6 +867,7 @@ const zoomOut = notes => {
         _coordinateAdjustY = minY - document.documentElement.clientHeight / 2 + deltaY / 2;
     }
 
+    _originalScale = _scale;
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
 
@@ -921,6 +923,13 @@ connection.on("DeleteNotes", noteIds => {
     }
 });
 
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && (e.key == "+" || e.key == "-" || e.key == "0")) {
+        // Prevent keyboard zooming since we have custom zooming implemented
+        e.preventDefault();
+    }
+});
+
 document.addEventListener('keyup', (e) => {
     if (e.key === "Escape") {
         deSelectNotes();
@@ -958,13 +967,22 @@ document.addEventListener('keyup', (e) => {
                 importNotes(notes, true);
             });
         }
-        else if (e.metaKey || e.shiftKey || e.ctrlKey ||
-            e.key === "Alt" || e.key === "Control" || e.key === "Shift" ||
-            e.key === "F12" || e.key === "Tab" || e.key === "Meta") {
-            // Ignore
+        else if (e.ctrlKey && e.key == "+") {
+            // Zoom in
+            _scale *= 1.1;
+            e.preventDefault();
+            _notesElement.style.transform = `scale(${_scale})`;
         }
-        else if (e.key === "Backspace" || e.key === "Delete") {
-            deleteAllNotesByClassFilter("selected", true);
+        else if (e.ctrlKey && e.key == "-") {
+            // Zoom out
+            _scale *= 0.9;
+            e.preventDefault();
+            _notesElement.style.transform = `scale(${_scale})`;
+        }
+        else if (e.ctrlKey && e.key === "0" /* Ctrl-0 to reset zoom */) {
+            _scale = _originalScale;
+            e.preventDefault();
+            _notesElement.style.transform = `scale(${_scale})`;
         }
         else if (e.key === "a" && e.ctrlKey /* Ctrl-a to select all */) {
             deSelectNotes();
@@ -973,11 +991,15 @@ document.addEventListener('keyup', (e) => {
                 elements[i].classList.add("selected");
             }
         }
-        else if (e.key === "0" && e.ctrlKey /* Ctrl-0 to reset zoom */) {
-            _scale = 1.0;
-            _notesElement.style.transform = `scale(${_scale})`;
+        else if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey ||
+            e.key === "Alt" || e.key === "Control" || e.key === "Shift" ||
+            e.key === "F12" || e.key === "Tab" || e.key === "Meta") {
+            // Ignore these key combinations
         }
-        else if (!e.altKey) {
+        else if (e.key === "Backspace" || e.key === "Delete") {
+            deleteAllNotesByClassFilter("selected", true);
+        }
+        else {
             console.log(e);
             showNoteDialog();
         }
