@@ -434,7 +434,12 @@ const createOrUpdateNoteElement = (element, note) => {
     element.addEventListener("dblclick", e => {
         _pointers = [];
         if (e.ctrlKey && note.link !== undefined && note.link !== "") {
-            window.open(note.link, "_blank");
+            if (note.link.startsWith("http")) {
+                window.open(note.link, "_blank");
+            }
+            else {
+                document.location.href = `${StickyNotes.WwwRoot}${note.link}`;
+            }
         }
         else {
             editNoteMenu(element, note);
@@ -742,7 +747,10 @@ window.addEventListener('contextmenu', e => {
             const currentId = _id;
 
             let linkId = prompt("Provide link for new session. Leave blank to auto-generate.", "");
-            if (!linkId || linkId.length === 0) {
+            if (linkId == null) {
+                return;
+            }
+            else if (linkId.length === 0) {
                 linkId = generateId();
             }
 
