@@ -517,7 +517,7 @@ const createOrUpdateNoteElement = (element, note) => {
             modal.hide();
 
             console.log(note.id);
-            if (confirm("Do you really want to delete this note?")) {
+            if (confirm(`Do you really want to delete "${note.text}" note?`)) {
                 if (!_imported) {
                     connection.invoke("DeleteNotes", _id, [note.id])
                         .then(function () {
