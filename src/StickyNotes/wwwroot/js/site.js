@@ -640,6 +640,7 @@ const showNoteDialog = () => {
 
     noteTextElement.value = "";
     noteColorSelectElement.value = "lightyellow";
+    noteLinkElement.value = "";
     let addedNotes = [];
 
     const updateNoteSaveButtonClick = e => {
