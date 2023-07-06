@@ -740,10 +740,14 @@ window.addEventListener('contextmenu', e => {
             modal.hide();
 
             const currentId = _id;
-            const newId = generateId();
 
-            await addNote("Next", `${newId}`, "lightblue", true);
-            document.location.href = `${StickyNotes.WwwRoot}${newId}?parent=${currentId}`;
+            let linkId = prompt("Provide link for new session. Leave blank to auto-generate.", "");
+            if (!linkId || linkId.length === 0) {
+                linkId = generateId();
+            }
+
+            await addNote("Next", `${linkId}`, "lightblue", true);
+            document.location.href = `${StickyNotes.WwwRoot}${linkId}?parent=${currentId}`;
         }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
