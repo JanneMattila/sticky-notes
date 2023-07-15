@@ -53,20 +53,25 @@ const getId = async () => {
 
     _id = document.location.pathname.substring(StickyNotes.WwwRoot.length);
     if (_id.indexOf('/') > 0) {
-        _imported = true;
+        const firstPart = _id.substring(0, _id.indexOf('/'));
+        if (firstPart.indexOf('.') > 0) {
+            // This is an import since it has a dot in the first part
+            // e.g. raw.githubusercontent.com
+            _imported = true;
 
-        const importUri = _id;
-        console.log(importUri);
-        const response = await fetch(`https://${importUri}`);
-        if (response.status === 200) {
-            console.log(response.status);
+            const importUri = _id;
+            console.log(importUri);
+            const response = await fetch(`https://${importUri}`);
+            if (response.status === 200) {
+                console.log(response.status);
 
-            const json = await response.json();
-            console.log(json);
-            importNotes(json, false);
-            zoomOut(json);
+                const json = await response.json();
+                console.log(json);
+                importNotes(json, false);
+                zoomOut(json);
+            }
+            return;
         }
-        return;
     }
 
     if (_id.length === 0) {
@@ -438,7 +443,7 @@ const createOrUpdateNoteElement = (element, note) => {
                 window.open(note.link, "_blank");
             }
             else {
-                document.location.href = `${StickyNotes.WwwRoot}${note.link}`;
+                document.location.href = note.link;
             }
         }
         else {
@@ -1006,7 +1011,7 @@ document.addEventListener('keyup', (e) => {
         }
         else if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey ||
             e.key === "Alt" || e.key === "Control" || e.key === "Shift" ||
-            e.key === "F12" || e.key === "Tab" || e.key === "Meta") {
+            e.key === "F12" || e.key === "Tab" || e.key === "Meta" || e.key === "w") {
             // Ignore these key combinations
         }
         else if (e.key === "Backspace" || e.key === "Delete") {
