@@ -17,7 +17,7 @@ WORKDIR /app
 EXPOSE 8080
 
 # Install native dependencies required by SkiaSharp
-RUN apk add --no-cache fontconfig freetype
+RUN apk add --no-cache fontconfig freetype font-noto
 
 # Copy content from Build image
 COPY --from=build /app .
