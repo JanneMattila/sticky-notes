@@ -16,6 +16,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
 WORKDIR /app
 EXPOSE 8080
 
+# Install native dependencies required by SkiaSharp
+RUN apk add --no-cache fontconfig freetype
+
 # Copy content from Build image
 COPY --from=build /app .
 
