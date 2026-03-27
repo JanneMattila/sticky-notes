@@ -15,8 +15,9 @@ public class PagesController : Controller
         _notesHub = notesHub;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(string path = "")
     {
+        ViewBag.PreviewPath = path;
         return View();
     }
 
