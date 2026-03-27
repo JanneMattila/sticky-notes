@@ -725,6 +725,7 @@ window.addEventListener('contextmenu', e => {
         const menuZoomOutElement = document.getElementById("menuZoomOut");
         const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
         const menuStartNewSessionWithLinkElement = document.getElementById("menuStartNewSessionWithLink");
+        const menuCopyAsImageElement = document.getElementById("menuCopyAsImage");
         const menuRemoveAllNotesElement = document.getElementById("menuRemoveAllNotes");
         const menuThemeElement = document.getElementById("menuThemeButton");
 
@@ -762,6 +763,37 @@ window.addEventListener('contextmenu', e => {
             await addNote("Next", `${linkId}`, "lightblue", true);
             document.location.href = `${StickyNotes.WwwRoot}${linkId}?parent=${currentId}`;
         }
+        const menuCopyAsImageButtonClick = async e => {
+            modal.hide();
+            _isModalOpen = false;
+
+            // Wait for modal to fully close before capturing
+            await new Promise(resolve => setTimeout(resolve, 400));
+
+            try {
+                const bgColor = getComputedStyle(document.body).backgroundColor || '#ffffff';
+                const canvas = await html2canvas(document.body, {
+                    backgroundColor: bgColor,
+                    scale: 1,
+                    useCORS: true,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    windowWidth: window.innerWidth,
+                    windowHeight: window.innerHeight
+                });
+                canvas.toBlob(async blob => {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                    } catch (err) {
+                        console.log("Copy to clipboard failed", err);
+                    }
+                }, 'image/png');
+            } catch (err) {
+                console.log("html2canvas error", err);
+            }
+        }
         const menuRemoveAllNotesButtonClick = e => {
             modal.hide();
 
@@ -794,6 +826,7 @@ window.addEventListener('contextmenu', e => {
             menuZoomOutElement.removeEventListener("click", menuZoomOutClick);
             menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
             menuStartNewSessionWithLinkElement.removeEventListener("click", menuStartNewSessionWithLinkButtonClick);
+            menuCopyAsImageElement.removeEventListener("click", menuCopyAsImageButtonClick);
             menuRemoveAllNotesElement.removeEventListener("click", menuRemoveAllNotesButtonClick);
             menuThemeElement.removeEventListener("click", menuThemeButtonClick);
             modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
@@ -803,6 +836,7 @@ window.addEventListener('contextmenu', e => {
         menuZoomOutElement.addEventListener("click", menuZoomOutClick);
         menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
         menuStartNewSessionWithLinkElement.addEventListener("click", menuStartNewSessionWithLinkButtonClick);
+        menuCopyAsImageElement.addEventListener("click", menuCopyAsImageButtonClick);
         menuRemoveAllNotesElement.addEventListener("click", menuRemoveAllNotesButtonClick);
         menuThemeElement.addEventListener("click", menuThemeButtonClick);
         modalElement.addEventListener("hidden.bs.modal", dialogClosed);
