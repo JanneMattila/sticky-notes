@@ -100,7 +100,7 @@ container_app_json=$(az containerapp create \
   --cpu "0.25" \
   --memory "0.5Gi" \
   --ingress "external" \
-  --target-port 80 \
+  --target-port 8080 \
   --min-replicas 0 \
   --max-replicas 1 \
   --secrets storage="$storage_account_connection_string" \

@@ -1,17 +1,47 @@
-﻿using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.HttpOverrides;
+using StickyNotes.Data;
+using StickyNotes.Hubs;
 
-namespace StickyNotes;
+var builder = WebApplication.CreateBuilder(args);
 
-public class Program
-{
-    public static void Main(string[] args)
+builder.Services.AddOptions<NotesContextOptions>()
+    .Configure<IConfiguration>((settings, configuration) =>
     {
-        BuildWebHost(args).Run();
-    }
+        settings.StorageConnectionString = configuration["Storage"] ?? throw new InvalidOperationException("Storage connection string is not configured.");
+    });
+builder.Services.AddSingleton<INotesContext, NotesContext>();
+builder.Services.AddSignalR();
+builder.Services
+    .AddControllersWithViews()
+    .AddControllersAsServices();
 
-    public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .Build();
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
 }
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+}
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders =
+        ForwardedHeaders.XForwardedHost |
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto
+});
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.MapHub<NotesHub>("Notes");
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{*path}",
+    defaults: new { controller = "Pages", action = "Index" });
+
+app.Run();
