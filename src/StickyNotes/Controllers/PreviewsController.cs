@@ -27,6 +27,26 @@ public class PreviewsController : Controller
         ["red"] = new SKColor(255, 0, 0),
     };
 
+    private static readonly SKTypeface RubikTypeface = LoadRubikTypeface();
+
+    private static SKTypeface LoadRubikTypeface()
+    {
+        var fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "Rubik-VariableFont_wght.ttf");
+        if (System.IO.File.Exists(fontPath))
+        {
+            return SKTypeface.FromFile(fontPath);
+        }
+
+        // Fallback: try system-installed font path (Docker)
+        const string systemPath = "/usr/share/fonts/Rubik/Rubik-VariableFont_wght.ttf";
+        if (System.IO.File.Exists(systemPath))
+        {
+            return SKTypeface.FromFile(systemPath);
+        }
+
+        return SKTypeface.Default;
+    }
+
     private readonly INotesContext _context;
 
     public PreviewsController(INotesContext context)
@@ -136,7 +156,7 @@ public class PreviewsController : Controller
             {
                 float fontSize = (float)(24 * scale);
                 if (fontSize < 8) fontSize = 8;
-                using var font = new SKFont { Size = fontSize };
+                using var font = new SKFont(RubikTypeface, fontSize);
                 using var textPaint = new SKPaint();
                 textPaint.Color = SKColors.Black;
                 textPaint.IsAntialias = true;
