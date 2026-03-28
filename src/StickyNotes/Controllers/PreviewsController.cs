@@ -31,20 +31,23 @@ public class PreviewsController : Controller
 
     private static SKTypeface LoadRubikTypeface()
     {
+        // Try variable font from app directory
         var fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "Rubik-VariableFont_wght.ttf");
-        if (System.IO.File.Exists(fontPath))
-        {
-            return SKTypeface.FromFile(fontPath);
-        }
+        var typeface = TryLoadTypeface(fontPath);
+        if (typeface != null) return typeface;
 
-        // Fallback: try system-installed font path (Docker)
-        const string systemPath = "/usr/share/fonts/Rubik/Rubik-VariableFont_wght.ttf";
-        if (System.IO.File.Exists(systemPath))
-        {
-            return SKTypeface.FromFile(systemPath);
-        }
+        // Try static font from app directory
+        fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "static", "Rubik-Regular.ttf");
+        typeface = TryLoadTypeface(fontPath);
+        if (typeface != null) return typeface;
 
         return SKTypeface.Default;
+    }
+
+    private static SKTypeface? TryLoadTypeface(string path)
+    {
+        if (!System.IO.File.Exists(path)) return null;
+        return SKTypeface.FromFile(path);
     }
 
     private readonly INotesContext _context;
