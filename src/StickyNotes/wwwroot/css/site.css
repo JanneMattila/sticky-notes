@@ -82,6 +82,19 @@ html, body {
     box-shadow: var(--note-selected-box-shadow);
 }
 
+#selectionRect {
+    position: fixed;
+    border: 2px dashed rgba(0, 120, 215, 0.8);
+    background-color: rgba(0, 120, 215, 0.1);
+    pointer-events: none;
+    z-index: 999999;
+    display: none;
+}
+
+    #selectionRect.active {
+        display: block;
+    }
+
 .dialogBackground {
     background-color: var(--dialog--background-color);
     color: var(--dialog--foreground-color);

@@ -18,6 +18,12 @@ let _pointerDiff = 0;
 let _updateSend = new Date();
 let _coordinateAdjustX = 0, _coordinateAdjustY = 0;
 let _imported = false;
+let _isRectSelect = false;
+let _rectStartScreenX = 0, _rectStartScreenY = 0;
+let _preSelectedNotes = new Set();
+const _selectionRect = document.createElement('div');
+_selectionRect.id = 'selectionRect';
+document.body.appendChild(_selectionRect);
 
 const showErrorDialog = () => {
     if (_isErrorDialogOpen) return;
@@ -238,13 +244,41 @@ const pointerMove = e => {
         return;
     }
 
+    if (_isRectSelect) {
+        const screenX = e.clientX;
+        const screenY = e.clientY;
+        const left = Math.min(_rectStartScreenX, screenX);
+        const top = Math.min(_rectStartScreenY, screenY);
+        const width = Math.abs(screenX - _rectStartScreenX);
+        const height = Math.abs(screenY - _rectStartScreenY);
+
+        _selectionRect.style.left = `${left}px`;
+        _selectionRect.style.top = `${top}px`;
+        _selectionRect.style.width = `${width}px`;
+        _selectionRect.style.height = `${height}px`;
+
+        const selRect = { left, top, right: left + width, bottom: top + height };
+        const notes = document.getElementsByClassName("stickynote");
+        for (let i = 0; i < notes.length; i++) {
+            const noteRect = notes[i].getBoundingClientRect();
+            const intersects = !(noteRect.left > selRect.right || noteRect.right < selRect.left ||
+                                 noteRect.top > selRect.bottom || noteRect.bottom < selRect.top);
+            if (intersects) {
+                notes[i].classList.add("selected");
+            } else if (!_preSelectedNotes.has(notes[i].id)) {
+                notes[i].classList.remove("selected");
+            }
+        }
+        return;
+    }
+
     _endX = Math.floor(_currentX - clientX);
     _endY = Math.floor(_currentY - clientY);
     _currentX = clientX;
     _currentY = clientY;
 
     if (_sourceElement === undefined) {
-        if (_isMove) {
+        if (_isMove && !_isRectSelect) {
             _coordinateAdjustX += _endX;
             _coordinateAdjustY += _endY;
             const notes = document.getElementsByClassName("stickynote");
@@ -286,6 +320,21 @@ const pointerMove = e => {
 
 const pointerUp = e => {
     _isMove = false;
+
+    if (_isRectSelect) {
+        _isRectSelect = false;
+        _selectionRect.classList.remove('active');
+        _preSelectedNotes.clear();
+        for (let i = 0; i < _pointers.length; i++) {
+            if (_pointers[i].pointerId == e.pointerId) {
+                _pointers.splice(i, 1);
+                break;
+            }
+        }
+        e.stopPropagation();
+        return;
+    }
+
     for (let i = 0; i < _pointers.length; i++) {
         const p = _pointers[i];
         if (p.pointerId == e.pointerId) {
@@ -704,6 +753,26 @@ window.addEventListener('blur', () => {
 window.addEventListener('pointerdown', e => {
     if (_isModalOpen) return;
 
+    if (e.ctrlKey) {
+        // Start rectangle selection
+        _isRectSelect = true;
+        _isMove = false;
+        _rectStartScreenX = e.clientX;
+        _rectStartScreenY = e.clientY;
+        _preSelectedNotes.clear();
+        const preSelected = document.getElementsByClassName("selected");
+        for (let i = 0; i < preSelected.length; i++) {
+            _preSelectedNotes.add(preSelected[i].id);
+        }
+        _selectionRect.style.left = `${e.clientX}px`;
+        _selectionRect.style.top = `${e.clientY}px`;
+        _selectionRect.style.width = '0px';
+        _selectionRect.style.height = '0px';
+        _selectionRect.classList.add('active');
+        _pointers.push(e);
+        return;
+    }
+
     deSelectNotes();
 
     _pointerDiff = 0;
@@ -983,6 +1052,21 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keyup', (e) => {
+    if (e.key === "Control" && _isRectSelect) {
+        // Cancel rectangle selection and restore previous selection state
+        _isRectSelect = false;
+        _selectionRect.classList.remove('active');
+        const notes = document.getElementsByClassName("stickynote");
+        for (let i = 0; i < notes.length; i++) {
+            if (_preSelectedNotes.has(notes[i].id)) {
+                notes[i].classList.add("selected");
+            } else {
+                notes[i].classList.remove("selected");
+            }
+        }
+        _preSelectedNotes.clear();
+        return;
+    }
     if (e.key === "Escape") {
         deSelectNotes();
         _selectedElement = undefined;
