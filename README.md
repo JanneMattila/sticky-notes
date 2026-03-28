@@ -19,6 +19,24 @@ To edit existing note, you can just double click on the note.
 You can quickly enter many notes with `Ctrl+Enter` shortcut when typing
 text to the note.
 
+## Run locally with Docker
+
+Build the Docker image:
+
+```bash
+docker build -t sticky-notes .
+```
+
+Run the container:
+
+```bash
+docker run -p 8080:8080 -e "Storage=<your-azure-table-storage-connection-string>" sticky-notes
+```
+
+The `Storage` environment variable must be set to an Azure Table Storage connection string.
+
+Open [http://localhost:8080](http://localhost:8080) in your browser.
+
 ## Deploy
 
 To deploy Sticky Notes to your own Azure subscription, you
