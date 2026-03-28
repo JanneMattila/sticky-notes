@@ -47,7 +47,11 @@ public class PreviewsController : Controller
     private static SKTypeface? TryLoadTypeface(string path)
     {
         if (!System.IO.File.Exists(path)) return null;
-        return SKTypeface.FromFile(path);
+        var typeface = SKTypeface.FromFile(path);
+        // Verify the typeface actually loaded the expected font
+        if (typeface == null || string.Equals(typeface.FamilyName, SKTypeface.Default.FamilyName, StringComparison.OrdinalIgnoreCase))
+            return null;
+        return typeface;
     }
 
     private readonly INotesContext _context;
