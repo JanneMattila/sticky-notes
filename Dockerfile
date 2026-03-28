@@ -17,7 +17,7 @@ WORKDIR /app
 EXPOSE 8080
 
 # Install native dependencies required by SkiaSharp
-RUN apk add --no-cache fontconfig freetype font-noto
+RUN apk add --no-cache fontconfig freetype
 
 # Install Rubik font for server-side image generation
 COPY /src/StickyNotes/wwwroot/fonts/Rubik/*.ttf /usr/share/fonts/Rubik/
