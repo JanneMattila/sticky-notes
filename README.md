@@ -30,7 +30,13 @@ docker build -t sticky-notes .
 Run the container:
 
 ```bash
-docker run -p 8080:8080 -e "Storage=<your-azure-table-storage-connection-string>" sticky-notes
+docker run -p 8080:8080 --env-file .env sticky-notes
+```
+
+Create a `.env` file in the repository root with the following format:
+
+```
+Storage=<your-azure-table-storage-connection-string>
 ```
 
 The `Storage` environment variable must be set to an Azure Table Storage connection string.

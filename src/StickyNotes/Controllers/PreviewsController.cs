@@ -31,13 +31,13 @@ public class PreviewsController : Controller
 
     private static SKTypeface LoadRubikTypeface()
     {
-        // Try variable font from app directory
-        var fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "Rubik-VariableFont_wght.ttf");
+        // Prefer static font (variable font renders with wrong weight on Alpine/musl)
+        var fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "static", "Rubik-Regular.ttf");
         var typeface = TryLoadTypeface(fontPath);
         if (typeface != null) return typeface;
 
-        // Try static font from app directory
-        fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "static", "Rubik-Regular.ttf");
+        // Fallback to variable font
+        fontPath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "fonts", "Rubik", "Rubik-VariableFont_wght.ttf");
         typeface = TryLoadTypeface(fontPath);
         if (typeface != null) return typeface;
 
@@ -48,7 +48,6 @@ public class PreviewsController : Controller
     {
         if (!System.IO.File.Exists(path)) return null;
         var typeface = SKTypeface.FromFile(path);
-        // Verify the typeface actually loaded the expected font
         if (typeface == null || string.Equals(typeface.FamilyName, SKTypeface.Default.FamilyName, StringComparison.OrdinalIgnoreCase))
             return null;
         return typeface;
