@@ -21,6 +21,7 @@ let _imported = false;
 let _isRectSelect = false;
 let _rectStartScreenX = 0, _rectStartScreenY = 0;
 let _preSelectedNotes = new Set();
+let _lastCanvasClickX = 100, _lastCanvasClickY = 100;
 const _selectionRect = document.createElement('div');
 _selectionRect.id = 'selectionRect';
 document.body.appendChild(_selectionRect);
@@ -159,8 +160,8 @@ const importNotes = (notes, randomize) => {
             const note = notes[i];
             if (randomize) {
                 note.id = generateId();
-                note.position.x += 100 - minX;
-                note.position.y += 100 - minY;
+                note.position.x += _lastCanvasClickX - minX;
+                note.position.y += _lastCanvasClickY - minY;
                 note.position.rotation = Math.floor(Math.random() * 8) - 4;
             }
             let element = document.createElement('div');
@@ -779,6 +780,8 @@ window.addEventListener('pointerdown', e => {
     _pointers.push(e);
     _currentX = e.clientX / _scale;
     _currentY = e.clientY / _scale;
+    _lastCanvasClickX = _currentX;
+    _lastCanvasClickY = _currentY;
     _isMove = true;
 });
 
