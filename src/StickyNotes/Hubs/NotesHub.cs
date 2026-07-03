@@ -33,10 +33,7 @@ public class NotesHub : Hub
             }
         }
 
-        if (notes.Any())
-        {
-            await Clients.Caller.SendAsync("AllNotes", notes);
-        }
+        await Clients.Caller.SendAsync("AllNotes", notes);
     }
 
     public async Task Leave(string id)

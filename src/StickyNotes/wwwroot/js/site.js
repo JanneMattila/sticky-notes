@@ -1,6 +1,7 @@
 ﻿console.log(`StickyNotes.WwwRoot: ${StickyNotes.WwwRoot}`);
 
 let _notesElement = document.getElementById("notes");
+let _initialNotesLoadingElement = document.getElementById("initialNotesLoadingIndicator");
 
 let _id;
 let _scale = 1;
@@ -18,6 +19,7 @@ let _pointerDiff = 0;
 let _updateSend = new Date();
 let _coordinateAdjustX = 0, _coordinateAdjustY = 0;
 let _imported = false;
+let _isInitialNotesLoadPending = true;
 let _isRectSelect = false;
 let _rectStartScreenX = 0, _rectStartScreenY = 0;
 let _preSelectedNotes = new Set();
@@ -33,6 +35,19 @@ const showErrorDialog = () => {
     const modalElement = document.getElementById("errorModal");
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
+}
+
+const setInitialNotesLoadingVisible = visible => {
+    if (_initialNotesLoadingElement === undefined || _initialNotesLoadingElement == null) {
+        return;
+    }
+
+    if (visible) {
+        _initialNotesLoadingElement.classList.add("visible");
+    }
+    else {
+        _initialNotesLoadingElement.classList.remove("visible");
+    }
 }
 
 const generateId = () => {
@@ -934,6 +949,10 @@ connection.onreconnected(connectionId => {
 const startConnection = () => {
     if (_imported) return;
 
+    if (_isInitialNotesLoadPending) {
+        setInitialNotesLoadingVisible(true);
+    }
+
     connection.start()
         .then(async () => {
             // Connected
@@ -947,6 +966,7 @@ const startConnection = () => {
             }
         })
         .catch(function (err) {
+            setInitialNotesLoadingVisible(false);
             console.log(err);
             showErrorDialog();
         });
@@ -1009,6 +1029,11 @@ const zoomOut = notes => {
 connection.on("AllNotes", notes => {
     console.log("Notes:");
     console.log(notes);
+
+    if (_isInitialNotesLoadPending) {
+        _isInitialNotesLoadPending = false;
+        setInitialNotesLoadingVisible(false);
+    }
 
     zoomOut(notes);
 });

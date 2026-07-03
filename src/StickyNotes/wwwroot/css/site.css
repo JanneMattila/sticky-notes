@@ -11,6 +11,9 @@ html, body {
     --note-selected-box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
     --dialog--background-color: white;
     --dialog--foreground-color: black;
+    --loading-indicator-background-color: rgba(255, 255, 255, 0.88);
+    --loading-indicator-foreground-color: #222222;
+    --loading-indicator-border-color: rgba(0, 0, 0, 0.2);
     background-color: var(--background-color);
     margin: 0px;
     position: absolute;
@@ -28,6 +31,9 @@ html, body {
     --note-selected-box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.4);
     --dialog--background-color: white;
     --dialog--foreground-color: black;
+    --loading-indicator-background-color: rgba(255, 255, 255, 0.88);
+    --loading-indicator-foreground-color: #222222;
+    --loading-indicator-border-color: rgba(0, 0, 0, 0.2);
 }
 
 .dark {
@@ -38,6 +44,9 @@ html, body {
     --note-selected-box-shadow: 5px 5px 10px 0 rgba(255,255,255, 0.4);
     --dialog--background-color: #161B22;
     --dialog--foreground-color: #FFFFFF;
+    --loading-indicator-background-color: rgba(12, 17, 22, 0.86);
+    --loading-indicator-foreground-color: #D9E1EA;
+    --loading-indicator-border-color: rgba(217, 225, 234, 0.22);
 }
 
     html::-webkit-scrollbar, body::-webkit-scrollbar {
@@ -98,4 +107,24 @@ html, body {
 .dialogBackground {
     background-color: var(--dialog--background-color);
     color: var(--dialog--foreground-color);
+}
+
+#initialNotesLoadingIndicator {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1000000;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--loading-indicator-border-color);
+    background-color: var(--loading-indicator-background-color);
+    color: var(--loading-indicator-foreground-color);
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: none;
+    pointer-events: none;
+}
+
+#initialNotesLoadingIndicator.visible {
+    display: block;
 }
