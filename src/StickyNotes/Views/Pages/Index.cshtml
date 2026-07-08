@@ -28,9 +28,15 @@
                     <option value="red" style="background-color: red">Red</option>
                 </select>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="updateNoteSaveButton">Save changes</button>
+            <div class="modal-footer justify-content-between">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-secondary" id="noteEditMarkdownButton" title="Edit markdown" aria-label="Edit markdown">✎</button>
+                    <button type="button" class="btn btn-outline-secondary" id="noteViewMarkdownButton" title="View markdown" aria-label="View markdown">👁</button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="updateNoteSaveButton">Save changes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -149,9 +155,33 @@
 <div id="initialNotesLoadingIndicator" aria-live="polite">Loading notes...</div>
 <div id="notes"></div>
 
+<div id="markdownViewOverlay" class="markdown-overlay" aria-hidden="true">
+    <button type="button" class="markdown-edit-icon" id="markdownViewEditButton" title="Edit markdown" aria-label="Edit markdown">✎</button>
+    <div class="markdown-overlay-content">
+        <article id="markdownViewBody" class="markdown-body"></article>
+    </div>
+</div>
+
+<div id="markdownEditOverlay" class="markdown-overlay" aria-hidden="true">
+    <div class="markdown-overlay-toolbar">
+        <span class="markdown-overlay-title">Edit markdown</span>
+        <span id="markdownEditStatus" class="markdown-edit-status" aria-live="polite"></span>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="markdownEditViewButton" title="Switch to view mode">👁 View</button>
+        <button type="button" class="btn btn-sm btn-secondary" id="markdownEditCloseButton" aria-label="Close" title="Close (Esc)">✕ Close</button>
+    </div>
+    <div class="markdown-overlay-content">
+        <textarea id="markdownEditText" class="markdown-editor" spellcheck="true" autocomplete="off" autocapitalize="off" placeholder="Write GitHub-flavored markdown here. Paste an image to attach it. Use a ```mermaid``` block for diagrams."></textarea>
+    </div>
+</div>
+
 @section Scripts
     {
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/marked/marked.min.js"></script>
+    <script src="~/lib/dompurify/dist/purify.min.js"></script>
+    <script src="~/lib/mermaid/dist/mermaid.min.js"></script>
+    <script src="~/lib/highlightjs/highlight.min.js"></script>
+    <script src="~/lib/highlightjs/languages/powershell.min.js"></script>
     <environment include="Development">
         <script src="~/lib/signalr/dist/browser/signalr.js"></script>
         @*<script src="~/js/note.js" asp-append-version="true"></script>*@

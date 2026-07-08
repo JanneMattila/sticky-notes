@@ -13,8 +13,12 @@
     <meta property="og:type" content="website" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.css" />
+    <link id="ghMarkdownLight" rel="stylesheet" href="~/lib/github-markdown-css/github-markdown-light.css" />
+    <link id="ghMarkdownDark" rel="stylesheet" href="~/lib/github-markdown-css/github-markdown-dark.css" disabled />
+    <link id="hljsLight" rel="stylesheet" href="~/lib/highlightjs/styles/github.min.css" />
+    <link id="hljsDark" rel="stylesheet" href="~/lib/highlightjs/styles/github-dark.min.css" disabled />
     <environment include="Development">
-        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

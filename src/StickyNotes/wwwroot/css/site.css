@@ -128,3 +128,203 @@ html, body {
 #initialNotesLoadingIndicator.visible {
     display: block;
 }
+
+/* Markdown view/edit overlays */
+.markdown-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000001;
+    display: none;
+    flex-direction: column;
+    background-color: var(--dialog--background-color);
+    color: var(--dialog--foreground-color);
+}
+
+    .markdown-overlay.visible {
+        display: flex;
+    }
+
+.markdown-overlay-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--loading-indicator-border-color);
+    flex: 0 0 auto;
+}
+
+.markdown-overlay-title {
+    font-weight: bold;
+    margin-right: auto;
+}
+
+.markdown-edit-status {
+    opacity: 0.7;
+    font-size: 14px;
+    min-width: 80px;
+    text-align: right;
+}
+
+.markdown-overlay-content {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 16px;
+    touch-action: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.markdown-editor {
+    display: block;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    resize: none;
+    padding: 12px;
+    border: 1px solid var(--loading-indicator-border-color);
+    border-radius: 6px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.5;
+    background-color: var(--dialog--background-color);
+    color: var(--dialog--foreground-color);
+    touch-action: auto;
+}
+
+.markdown-body {
+    box-sizing: border-box;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 16px;
+    position: relative;
+    /* Use the overlay's background so the toolbar and content are one shade
+       (github-markdown-css otherwise paints its own canvas color here). */
+    background-color: transparent;
+}
+
+/* Dimmed edit icon aligned to the right of the first heading; it lives inside the
+   scrollable content so it scrolls off-screen together with the title. */
+.markdown-edit-icon {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: inherit;
+    opacity: 0.18;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 4px 8px;
+    transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+    /* Fallback position when the document has no heading. */
+    .markdown-edit-icon.md-edit-floating {
+        top: 8px;
+        transform: none;
+    }
+
+    .markdown-edit-icon:hover,
+    .markdown-edit-icon:focus-visible {
+        opacity: 1;
+        background-color: rgba(127, 127, 127, 0.18);
+        border-color: var(--loading-indicator-border-color);
+    }
+
+/* Leave room for the edit icon at the end of the heading line. */
+.markdown-body .md-has-edit {
+    padding-right: 2.4em;
+}
+
+/* Copy-to-clipboard button on code blocks. */
+.markdown-body pre.md-has-copy {
+    position: relative;
+}
+
+.md-copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border: 1px solid var(--loading-indicator-border-color);
+    border-radius: 6px;
+    background-color: var(--dialog--background-color);
+    color: inherit;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+    .markdown-body pre.md-has-copy:hover .md-copy-btn,
+    .md-copy-btn:focus-visible {
+        opacity: 0.7;
+    }
+
+    .md-copy-btn:hover {
+        opacity: 1;
+        background-color: rgba(127, 127, 127, 0.18);
+    }
+
+    .md-copy-btn.copied {
+        opacity: 1;
+        color: #2da44e;
+    }
+
+.md-copy-btn svg {
+    display: block;
+}
+
+/* Hover anchors for headings. */
+.markdown-body .md-heading {
+    position: relative;
+    scroll-margin-top: 12px;
+}
+
+.markdown-body .md-anchor {
+    position: absolute;
+    left: -1.05em;
+    top: 0;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+    .markdown-body .md-heading:hover .md-anchor,
+    .markdown-body .md-anchor:focus-visible {
+        opacity: 0.5;
+    }
+
+    .markdown-body .md-anchor:hover {
+        opacity: 1;
+    }
+
+.md-anchor svg {
+    display: block;
+}
+
+
+/* GitHub-style task lists. marked renders "- [ ] x" as <li><input type=checkbox>
+   but does not add GitHub's .task-list-item classes, so hide the bullet and
+   pull the checkbox into the margin to match GitHub's appearance. In a "loose"
+   list the checkbox is wrapped in a <p>, so handle both shapes. */
+.markdown-body li:has(> input[type="checkbox"]),
+.markdown-body li:has(> p > input[type="checkbox"]) {
+    list-style-type: none;
+}
+
+.markdown-body li > input[type="checkbox"],
+.markdown-body li > p > input[type="checkbox"] {
+    margin: 0 0.35em 0.25em -1.4em;
+    vertical-align: middle;
+}
+

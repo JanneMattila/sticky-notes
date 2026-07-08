@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.HttpOverrides;
 using StickyNotes.Data;
 using StickyNotes.Hubs;
+using StickyNotes.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddOptions<NotesContextOptions>()
         settings.StorageConnectionString = configuration["Storage"] ?? throw new InvalidOperationException("Storage connection string is not configured.");
     });
 builder.Services.AddSingleton<INotesContext, NotesContext>();
+builder.Services.AddSingleton<IBlobContext, BlobContext>();
+builder.Services.AddSingleton<MarkdownDocumentService>();
 builder.Services.AddSignalR();
 builder.Services
     .AddControllersWithViews()
