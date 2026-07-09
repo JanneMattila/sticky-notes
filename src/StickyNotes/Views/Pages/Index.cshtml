@@ -108,6 +108,7 @@
             <div class="modal-body">
                 <div class="d-grid gap-2">
                     <button class="btn btn-primary" type="button" id="menuAddNotes">Add notes</button>
+                    <button class="btn btn-primary" type="button" id="menuSettings">Settings</button>
                     <hr />
                     <button class="btn btn-success" type="button" id="menuZoomOut">Zoom out</button>
                     <hr />
@@ -129,6 +130,29 @@
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-secondary" id="menuThemeButton">☀ Theme</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade noTextSelect" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content dialogBackground">
+            <div class="modal-header">
+                <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="settingsReadonly">
+                    <label class="form-check-label" for="settingsReadonly">
+                        Read-only (notes cannot be moved or edited)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="settingsSaveButton">Save</button>
             </div>
         </div>
     </div>

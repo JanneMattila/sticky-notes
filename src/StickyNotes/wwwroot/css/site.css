@@ -91,6 +91,11 @@ html, body {
     box-shadow: var(--note-selected-box-shadow);
 }
 
+/* On read-only boards notes can be viewed but not moved or resized. */
+.readonly .stickynote {
+    cursor: default;
+}
+
 #selectionRect {
     position: fixed;
     border: 2px dashed rgba(0, 120, 215, 0.8);

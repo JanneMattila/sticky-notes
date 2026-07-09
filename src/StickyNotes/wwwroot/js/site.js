@@ -35,6 +35,41 @@ let _mermaidInitialized = false;
 let _mermaidTheme = "default";
 let _markdownAutoOpenChecked = false;
 
+// Board-level settings are persisted in a hidden "reserved" note. Reserved notes
+// are stored/synced like any other note but are never rendered on the canvas.
+const RESERVED_NOTE_PREFIX = "__reserved__";
+const SETTINGS_NOTE_ID = "__reserved__settings";
+let _settings = { readonly: false };
+
+const isReadonly = () => _settings.readonly === true;
+const isReservedNote = note => note && note.id && note.id.startsWith(RESERVED_NOTE_PREFIX);
+
+const applyReadonlyState = () => {
+    const readonly = isReadonly();
+    document.body.classList.toggle("readonly", readonly);
+    const addBtn = document.getElementById("menuAddNotes");
+    const removeBtn = document.getElementById("menuRemoveAllNotes");
+    if (addBtn) addBtn.classList.toggle("d-none", readonly);
+    if (removeBtn) removeBtn.classList.toggle("d-none", readonly);
+};
+
+const applySettingsFromNote = note => {
+    try {
+        const parsed = JSON.parse(note.text);
+        if (parsed && typeof parsed === "object") {
+            _settings = Object.assign({ readonly: false }, parsed);
+        }
+    } catch (e) {
+        console.log("Failed to parse settings note", e);
+    }
+    applyReadonlyState();
+};
+
+const resetSettingsDefault = () => {
+    _settings = { readonly: false };
+    applyReadonlyState();
+};
+
 const showErrorDialog = () => {
     if (_isErrorDialogOpen) return;
 
@@ -96,6 +131,8 @@ const getId = async () => {
 
                 const json = await response.json();
                 console.log(json);
+                const importSettingsNote = (json || []).find(n => n.id === SETTINGS_NOTE_ID);
+                if (importSettingsNote) applySettingsFromNote(importSettingsNote);
                 importNotes(json, false);
                 zoomOut(json);
             }
@@ -168,6 +205,7 @@ const convertElementToNote = (element) => {
 }
 
 const importNotes = (notes, randomize) => {
+    if (randomize && isReadonly()) return;
     if (notes !== undefined && notes.length !== undefined) {
         deSelectNotes();
 
@@ -181,6 +219,7 @@ const importNotes = (notes, randomize) => {
         }
         for (let i = 0; i < notes.length; i++) {
             const note = notes[i];
+            if (isReservedNote(note)) continue;
             if (randomize) {
                 note.id = generateId();
                 note.position.x += _lastCanvasClickX - minX;
@@ -202,6 +241,7 @@ const importNotes = (notes, randomize) => {
 
 const updateNoteElementsToServer = async (elements) => {
     if (_imported) return;
+    if (isReadonly()) return;
 
     let notes = [];
     for (let i = 0; i < elements.length; i++) {
@@ -314,6 +354,9 @@ const pointerMove = e => {
         }
         return;
     }
+
+    // Read-only boards allow panning/zooming but not moving or resizing notes.
+    if (isReadonly()) return;
 
     if (_isResize) {
         const width = Math.floor(_sourceElement.style.width.replace("px", ""));
@@ -615,6 +658,8 @@ const highlightCodeBlocks = container => {
 const placeEditButton = body => {
     const button = document.getElementById("markdownViewEditButton");
     if (!button) return;
+    // Read-only boards cannot edit markdown, so hide the edit pen entirely.
+    button.classList.toggle("d-none", isReadonly());
     button.classList.remove("md-edit-floating");
     const firstHeading = body.querySelector("h1, h2, h3, h4, h5, h6");
     if (firstHeading) {
@@ -655,6 +700,9 @@ const setMarkdownStatus = status => {
 
 const switchMarkdownMode = mode => {
     if (!_mdDoc) return;
+
+    // Read-only boards can only view markdown; never enter edit mode.
+    if (mode === "edit" && isReadonly()) mode = "view";
 
     _mdDoc.mode = mode;
     _isModalOpen = true;
@@ -775,6 +823,7 @@ const openMarkdownFromUrl = () => {
 
 const scheduleMarkdownSend = () => {
     if (!_mdDoc) return;
+    if (isReadonly()) return;
     if (_mdDoc.pendingTimer) clearTimeout(_mdDoc.pendingTimer);
     _mdDoc.pendingTimer = setTimeout(() => {
         _mdDoc.pendingTimer = null;
@@ -1111,6 +1160,12 @@ const editNoteMenu = (element, note) => {
         noteViewMarkdownButtonElement.disabled = !(note.markdown || element.dataset.markdown);
     }
 
+    // Read-only board: the editor becomes view-only (no Save, no markdown editing).
+    updateNoteSaveButtonElement.classList.toggle("d-none", isReadonly());
+    if (noteEditMarkdownButtonElement) {
+        noteEditMarkdownButtonElement.classList.toggle("d-none", isReadonly());
+    }
+
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
 };
@@ -1207,6 +1262,10 @@ const createOrUpdateNoteElement = (element, note) => {
         const noteMenuSendToBackElement = document.getElementById("noteMenuSendToBack");
         const noteMenuNoteSettingsElement = document.getElementById("noteMenuNoteSettings");
         const noteMenuDeleteNoteElement = document.getElementById("noteMenuDeleteNote");
+
+        // Read-only boards only allow viewing; hide actions that mutate notes.
+        const mutatingMenuItems = [noteMenuBringToFrontElement, noteMenuSendToBackElement, noteMenuNoteSettingsElement, noteMenuDeleteNoteElement];
+        mutatingMenuItems.forEach(item => item && item.classList.toggle("d-none", isReadonly()));
 
         let newDialogOpened = false;
         const setZIndex = bringToFront => {
@@ -1354,6 +1413,7 @@ const addNote = async (noteText, noteLink, color, first) => {
 }
 
 const deleteAllNotesByClassFilter = (filter, remove) => {
+    if (remove && isReadonly()) return;
     const matches = document.getElementsByClassName(filter);
     let noteIds = [];
     while (matches.length > 0) {
@@ -1375,12 +1435,70 @@ const deleteAllNotesByClassFilter = (filter, remove) => {
     _selectedElement = undefined;
 }
 
+const saveSettingsToServer = async () => {
+    if (_imported) return;
+
+    const note = {
+        id: SETTINGS_NOTE_ID,
+        text: JSON.stringify(_settings),
+        link: "",
+        color: "",
+        markdown: "",
+        position: { x: 0, y: 0, z: 0, rotation: 0 },
+        width: 0,
+        height: 0
+    };
+
+    try {
+        await connection.invoke("UpdateNotes", _id, [note]);
+        console.log("Settings saved", _settings);
+    } catch (err) {
+        console.log("Settings save error", err);
+        showErrorDialog();
+    }
+}
+
+const showSettingsDialog = () => {
+    _isMove = false;
+    _pointers = [];
+    if (_isModalOpen) {
+        return;
+    }
+
+    _isModalOpen = true;
+    const modalElement = document.getElementById("settingsModal");
+    const readonlyElement = document.getElementById("settingsReadonly");
+    const saveButtonElement = document.getElementById("settingsSaveButton");
+
+    readonlyElement.checked = isReadonly();
+
+    const saveButtonClick = async e => {
+        _settings.readonly = readonlyElement.checked;
+        applyReadonlyState();
+        await saveSettingsToServer();
+        modal.hide();
+    }
+
+    const dialogClosed = e => {
+        _isModalOpen = false;
+        saveButtonElement.removeEventListener("click", saveButtonClick);
+        modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+    }
+
+    saveButtonElement.addEventListener("click", saveButtonClick);
+    modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
 const showNoteDialog = () => {
     _isMove = false;
     _pointers = [];
     if (_isModalOpen) {
         return;
     }
+    if (isReadonly()) return;
 
     _isModalOpen = true;
     const modalElement = document.getElementById("noteModal");
@@ -1485,6 +1603,7 @@ window.addEventListener('contextmenu', e => {
 
         const modalElement = document.getElementById("menuModal");
         const menuAddNotesElement = document.getElementById("menuAddNotes");
+        const menuSettingsElement = document.getElementById("menuSettings");
         const menuZoomOutElement = document.getElementById("menuZoomOut");
         const menuStartNewSessionElement = document.getElementById("menuStartNewSession");
         const menuStartNewSessionWithLinkElement = document.getElementById("menuStartNewSessionWithLink");
@@ -1499,6 +1618,13 @@ window.addEventListener('contextmenu', e => {
             newDialogOpened = true;
             _isModalOpen = false;
             showNoteDialog();
+        }
+        const menuSettingsButtonClick = e => {
+            modal.hide();
+
+            newDialogOpened = true;
+            _isModalOpen = false;
+            showSettingsDialog();
         }
         const menuZoomOutClick = e => {
             modal.hide();
@@ -1592,6 +1718,7 @@ window.addEventListener('contextmenu', e => {
                 _isModalOpen = false;
             }
             menuAddNotesElement.removeEventListener("click", menuAddNotesButtonClick);
+            menuSettingsElement.removeEventListener("click", menuSettingsButtonClick);
             menuZoomOutElement.removeEventListener("click", menuZoomOutClick);
             menuStartNewSessionElement.removeEventListener("click", menuStartNewSessionButtonClick);
             menuStartNewSessionWithLinkElement.removeEventListener("click", menuStartNewSessionWithLinkButtonClick);
@@ -1602,6 +1729,7 @@ window.addEventListener('contextmenu', e => {
         }
 
         menuAddNotesElement.addEventListener("click", menuAddNotesButtonClick);
+        menuSettingsElement.addEventListener("click", menuSettingsButtonClick);
         menuZoomOutElement.addEventListener("click", menuZoomOutClick);
         menuStartNewSessionElement.addEventListener("click", menuStartNewSessionButtonClick);
         menuStartNewSessionWithLinkElement.addEventListener("click", menuStartNewSessionWithLinkButtonClick);
@@ -1660,6 +1788,8 @@ const startConnection = () => {
 
 const zoomOut = notes => {
     deleteAllNotesByClassFilter("stickynote", false);
+
+    notes = (notes || []).filter(n => !isReservedNote(n));
 
     if (!notes || notes.length === 0) {
         // Nothing to fit. Reset the view to a neutral state instead of deriving
@@ -1734,6 +1864,13 @@ connection.on("AllNotes", notes => {
         setInitialNotesLoadingVisible(false);
     }
 
+    const settingsNote = (notes || []).find(n => n.id === SETTINGS_NOTE_ID);
+    if (settingsNote) {
+        applySettingsFromNote(settingsNote);
+    } else {
+        resetSettingsDefault();
+    }
+
     zoomOut(notes);
 
     if (!_markdownAutoOpenChecked) {
@@ -1748,6 +1885,10 @@ connection.on("UpdateNotes", notes => {
 
     for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
+        if (isReservedNote(note)) {
+            applySettingsFromNote(note);
+            continue;
+        }
         note.position.x -= _coordinateAdjustX;
         note.position.y -= _coordinateAdjustY;
 
