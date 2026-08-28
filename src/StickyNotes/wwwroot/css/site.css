@@ -38,10 +38,10 @@ html, body {
 
 .dark {
     --background-color: #0C1116;
-    --note-border: 1px solid rgba(255,255,255,0.4);
-    --note-box-shadow: 2px 2px 5px 0 rgba(255,255,255, 0.4);
-    --note-selected-border: 2px solid rgba(255,255,255,0.8);
-    --note-selected-box-shadow: 5px 5px 10px 0 rgba(255,255,255, 0.4);
+    --note-border: 1px solid rgba(0,0,0,0.65);
+    --note-box-shadow: 2px 2px 5px 0 rgba(0,0,0, 0.6);
+    --note-selected-border: 2px solid rgba(0,0,0,0.9);
+    --note-selected-box-shadow: 5px 5px 10px 0 rgba(0,0,0, 0.7);
     --dialog--background-color: #161B22;
     --dialog--foreground-color: #FFFFFF;
     --loading-indicator-background-color: rgba(12, 17, 22, 0.86);

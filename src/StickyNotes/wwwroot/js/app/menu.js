@@ -6,6 +6,52 @@
 // and theme toggle.
 // ---------------------------------------------------------------------------
 
+const showLinkedSessionDialog = () => {
+    _isModalOpen = true;
+
+    const modalElement = document.getElementById("linkedSessionModal");
+    const formElement = document.getElementById("linkedSessionForm");
+    const nextTextElement = document.getElementById("linkedSessionNextText");
+    const previousTextElement = document.getElementById("linkedSessionPreviousText");
+    const urlElement = document.getElementById("linkedSessionUrl");
+    const createButtonElement = document.getElementById("linkedSessionCreateButton");
+
+    nextTextElement.value = "Next";
+    previousTextElement.value = "Previous";
+    urlElement.value = "";
+
+    const createLinkedSession = async e => {
+        e.preventDefault();
+
+        createButtonElement.disabled = true;
+        const currentId = _id;
+        const linkId = urlElement.value.trim() || generateId();
+        const queryString = new URLSearchParams({
+            parent: currentId,
+            previousText: previousTextElement.value
+        });
+
+        await addNote(nextTextElement.value, linkId, "lightblue", true);
+        document.location.href = `${StickyNotes.WwwRoot}${linkId}?${queryString.toString()}`;
+    };
+
+    const dialogShown = () => nextTextElement.focus();
+    const dialogClosed = () => {
+        _isModalOpen = false;
+        createButtonElement.disabled = false;
+        formElement.removeEventListener("submit", createLinkedSession);
+        modalElement.removeEventListener("shown.bs.modal", dialogShown);
+        modalElement.removeEventListener("hidden.bs.modal", dialogClosed);
+    };
+
+    formElement.addEventListener("submit", createLinkedSession);
+    modalElement.addEventListener("shown.bs.modal", dialogShown);
+    modalElement.addEventListener("hidden.bs.modal", dialogClosed);
+
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+};
+
 window.addEventListener('contextmenu', e => {
     e.preventDefault();
     if (_isModalOpen) return;
@@ -48,21 +94,11 @@ window.addEventListener('contextmenu', e => {
             _id = generateId();
             document.location.href = `${StickyNotes.WwwRoot}${_id}`;
         }
-        const menuStartNewSessionWithLinkButtonClick = async e => {
+        const menuStartNewSessionWithLinkButtonClick = e => {
             modal.hide();
 
-            const currentId = _id;
-
-            let linkId = prompt("Provide link for new session. Leave blank to auto-generate.", "");
-            if (linkId == null) {
-                return;
-            }
-            else if (linkId.length === 0) {
-                linkId = generateId();
-            }
-
-            await addNote("Next", `${linkId}`, "lightblue", true);
-            document.location.href = `${StickyNotes.WwwRoot}${linkId}?parent=${currentId}`;
+            newDialogOpened = true;
+            showLinkedSessionDialog();
         }
         const menuCopyAsImageButtonClick = async e => {
             modal.hide();

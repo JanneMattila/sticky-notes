@@ -58,10 +58,11 @@ const startConnection = () => {
             // Connected
             connection.invoke("Join", _id);
 
-            const queryString = parseQueryString();
+            const queryString = new URLSearchParams(document.location.search);
             const parentUri = queryString.get("parent");
-            if (parentUri !== undefined) {
-                await addNote("Previous", `${parentUri}`, "lightblue", true);
+            if (parentUri !== null) {
+                const previousText = queryString.get("previousText") || "Previous";
+                await addNote(previousText, parentUri, "lightblue", true);
                 document.location.replace(`${StickyNotes.WwwRoot}${_id}`);
             }
         })

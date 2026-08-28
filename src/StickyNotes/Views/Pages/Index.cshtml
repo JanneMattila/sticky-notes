@@ -135,6 +135,36 @@
     </div>
 </div>
 
+<div class="modal fade noTextSelect" id="linkedSessionModal" tabindex="-1" aria-labelledby="linkedSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content dialogBackground" id="linkedSessionForm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="linkedSessionModalLabel">Start linked session</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="linkedSessionNextText" class="form-label">Next note text</label>
+                    <input type="text" class="form-control" id="linkedSessionNextText" value="Next" required />
+                </div>
+                <div class="mb-3">
+                    <label for="linkedSessionPreviousText" class="form-label">Previous note text</label>
+                    <input type="text" class="form-control" id="linkedSessionPreviousText" value="Previous" required />
+                </div>
+                <div>
+                    <label for="linkedSessionUrl" class="form-label">New session URL</label>
+                    <input type="text" class="form-control" id="linkedSessionUrl" aria-describedby="linkedSessionUrlHelp" />
+                    <div class="form-text" id="linkedSessionUrlHelp">Leave blank to generate a URL automatically.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="linkedSessionCreateButton">Create session</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal fade noTextSelect" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content dialogBackground">
