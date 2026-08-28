@@ -64,8 +64,9 @@ public class PreviewsController : Controller
     [ResponseCache(Duration = 60)]
     public async Task<IActionResult> Get(string id)
     {
+        var partitionKey = BoardPartitionKey.FromBoardId(id);
         var notes = new List<StickyNote>();
-        await foreach (var entity in _context.GetAllAsync<NotesEntity>(TableNames.Notes, id))
+        await foreach (var entity in _context.GetAllAsync<NotesEntity>(TableNames.Notes, partitionKey))
         {
             var note = JsonSerializer.Deserialize<StickyNote>(entity.Data);
             if (note != null)

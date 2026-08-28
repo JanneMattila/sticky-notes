@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{06C2DE8C-7
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StickyNotes", "src\StickyNotes\StickyNotes.csproj", "{7FF5C963-13DD-4A99-ABEA-F70CD8810CC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StickyNotes.Tests", "test\StickyNotes.Tests\StickyNotes.Tests.csproj", "{FE37C102-4054-4C49-A0A0-D99DFF11BEC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,12 +34,17 @@ Global
 		{7FF5C963-13DD-4A99-ABEA-F70CD8810CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FF5C963-13DD-4A99-ABEA-F70CD8810CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FF5C963-13DD-4A99-ABEA-F70CD8810CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE37C102-4054-4C49-A0A0-D99DFF11BEC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE37C102-4054-4C49-A0A0-D99DFF11BEC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE37C102-4054-4C49-A0A0-D99DFF11BEC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE37C102-4054-4C49-A0A0-D99DFF11BEC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7FF5C963-13DD-4A99-ABEA-F70CD8810CC1} = {97624CD0-BD0B-403C-B499-9724A09AD24C}
+		{FE37C102-4054-4C49-A0A0-D99DFF11BEC4} = {06C2DE8C-7FEC-4159-A745-402893845099}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7116710A-7D27-4B61-BF4E-1B2F966352A2}

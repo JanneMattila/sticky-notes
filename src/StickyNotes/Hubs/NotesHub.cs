@@ -40,8 +40,9 @@ public class NotesHub : Hub
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, id);
+        var partitionKey = BoardPartitionKey.FromBoardId(id);
         var notes = new List<StickyNote>();
-        await foreach (var entity in _context.GetAllAsync<NotesEntity>(TableNames.Notes, id))
+        await foreach (var entity in _context.GetAllAsync<NotesEntity>(TableNames.Notes, partitionKey))
         {
             var note = JsonSerializer.Deserialize<StickyNote>(entity.Data);
             if (note != null)
@@ -66,13 +67,14 @@ public class NotesHub : Hub
 
     public async Task UpdateNotes(string id, List<StickyNote> notes)
     {
+        var partitionKey = BoardPartitionKey.FromBoardId(id);
         var tasks = new List<Task>();
         foreach (var note in notes)
         {
             var data = JsonSerializer.Serialize(note);
             tasks.Add(_context.UpsertAsync(TableNames.Notes, new NotesEntity()
             {
-                PartitionKey = id,
+                PartitionKey = partitionKey,
                 RowKey = note.ID,
                 Data = data
             }));
@@ -85,13 +87,14 @@ public class NotesHub : Hub
 
     public async Task DeleteNotes(string id, List<string> noteIDs)
     {
+        var partitionKey = BoardPartitionKey.FromBoardId(id);
         var tasks = new List<Task>();
         foreach (var noteID in noteIDs)
         {
             await RemoveMarkdownForNoteAsync(id, noteID);
             tasks.Add(_context.DeleteAsync(TableNames.Notes, new NotesEntity()
             {
-                PartitionKey = id,
+                PartitionKey = partitionKey,
                 RowKey = noteID
             }));
         }
@@ -135,7 +138,8 @@ public class NotesHub : Hub
 
     private async Task RemoveMarkdownForNoteAsync(string boardId, string noteID)
     {
-        var entity = await _context.GetAsync<NotesEntity>(TableNames.Notes, boardId, noteID);
+        var partitionKey = BoardPartitionKey.FromBoardId(boardId);
+        var entity = await _context.GetAsync<NotesEntity>(TableNames.Notes, partitionKey, noteID);
         if (entity == null)
         {
             return;

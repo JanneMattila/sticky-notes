@@ -11,7 +11,16 @@
   {
     "outputFileName": "wwwroot/js/site.min.js",
     "inputFiles": [
-      "wwwroot/js/site.js"
+      "wwwroot/js/app/state.js",
+      "wwwroot/js/app/utils.js",
+      "wwwroot/js/app/settings.js",
+      "wwwroot/js/app/hub.js",
+      "wwwroot/js/app/notes.js",
+      "wwwroot/js/app/interaction.js",
+      "wwwroot/js/app/markdown.js",
+      "wwwroot/js/app/menu.js",
+      "wwwroot/js/app/keyboard.js",
+      "wwwroot/js/app/bootstrap.js"
     ],
     // Optionally specify minification options
     "minify": {
