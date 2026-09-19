@@ -12,10 +12,21 @@ const isReservedNote = note => note && note.id && note.id.startsWith(RESERVED_NO
 const applyReadonlyState = () => {
     const readonly = isReadonly();
     document.body.classList.toggle("readonly", readonly);
-    const addBtn = document.getElementById("menuAddNotes");
-    const removeBtn = document.getElementById("menuRemoveAllNotes");
-    if (addBtn) addBtn.classList.toggle("d-none", readonly);
-    if (removeBtn) removeBtn.classList.toggle("d-none", readonly);
+    const mutatingControlIds = [
+        "menuAddNotes",
+        "menuRemoveAllNotes",
+        "updateNoteSaveButton",
+        "noteEditMarkdownButton",
+        "markdownViewEditButton",
+        "noteMenuBringToFront",
+        "noteMenuSendToBack",
+        "noteMenuNoteSettings",
+        "noteMenuDeleteNote",
+        "updateNoteSettingsButton"
+    ];
+    for (const controlId of mutatingControlIds) {
+        document.getElementById(controlId)?.classList.toggle("d-none", readonly);
+    }
 };
 
 const applySettingsFromNote = note => {

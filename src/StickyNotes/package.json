@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "stickynotes \"Error: no test specified\" && exit 1"
+    "test": "node --test ../../test/StickyNotes.Js.Tests/*.test.cjs"
   },
   "author": "Janne Mattila",
   "license": "MIT",
