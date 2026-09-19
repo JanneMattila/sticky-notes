@@ -33,6 +33,7 @@ let _isRectSelect = false;
 let _rectStartScreenX = 0, _rectStartScreenY = 0;
 let _preSelectedNotes = new Set();
 let _lastCanvasClickX = 100, _lastCanvasClickY = 100;
+let _contextMenuGesture = undefined;
 const _selectionRect = document.createElement('div');
 _selectionRect.id = 'selectionRect';
 document.body.appendChild(_selectionRect);

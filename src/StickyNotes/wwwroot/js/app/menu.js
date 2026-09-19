@@ -55,6 +55,7 @@ const showLinkedSessionDialog = () => {
 window.addEventListener('contextmenu', e => {
     if (_isModalOpen) return;
     e.preventDefault();
+    if (shouldSuppressContextMenu(e)) return;
 
     if (_sourceElement === undefined) {
         _isModalOpen = true;

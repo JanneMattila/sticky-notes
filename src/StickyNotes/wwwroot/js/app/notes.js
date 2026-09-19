@@ -286,6 +286,11 @@ const createOrUpdateNoteElement = (element, note) => {
     });
     element.addEventListener("contextmenu", e => {
         if (_isModalOpen) return;
+        if (shouldSuppressContextMenu(e)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
         _isModalOpen = true;
         _pointers = [];
 

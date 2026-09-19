@@ -6,6 +6,46 @@
 // Shared zoom correction: after `_scale` has been updated and applied to the
 // canvas, shift every note so the given center point stays visually anchored.
 // Used by both pinch-zoom (pointerMove) and wheel-zoom.
+const contextMenuDragThreshold = pointerType => pointerType === "touch" ? 12 : 4;
+
+const beginContextMenuGesture = e => {
+    _contextMenuGesture = undefined;
+    if (e.button !== 2 && e.pointerType !== "touch") return;
+
+    _contextMenuGesture = {
+        pointerId: e.pointerId,
+        pointerType: e.pointerType,
+        startX: e.clientX,
+        startY: e.clientY,
+        lastX: e.clientX,
+        lastY: e.clientY,
+        dragged: false
+    };
+};
+
+const updateContextMenuGesture = e => {
+    if (_contextMenuGesture?.pointerId !== e.pointerId) return;
+
+    _contextMenuGesture.lastX = e.clientX;
+    _contextMenuGesture.lastY = e.clientY;
+    const deltaX = e.clientX - _contextMenuGesture.startX;
+    const deltaY = e.clientY - _contextMenuGesture.startY;
+    const threshold = contextMenuDragThreshold(_contextMenuGesture.pointerType);
+    if (Math.hypot(deltaX, deltaY) > threshold) {
+        _contextMenuGesture.dragged = true;
+    }
+};
+
+const shouldSuppressContextMenu = e => {
+    if (!_contextMenuGesture?.dragged) return false;
+
+    const threshold = contextMenuDragThreshold(_contextMenuGesture.pointerType);
+    const isMatchingPosition =
+        Math.hypot(e.clientX - _contextMenuGesture.lastX, e.clientY - _contextMenuGesture.lastY) <= threshold;
+    _contextMenuGesture = undefined;
+    return isMatchingPosition;
+};
+
 const applyZoomCorrection = (centerX, centerY, previousScale) => {
     const scaleChange = previousScale - _scale;
     const correctionX = Math.floor(centerX * scaleChange);
@@ -25,6 +65,7 @@ const applyZoomCorrection = (centerX, centerY, previousScale) => {
 const pointerDown = e => {
     if (_isModalOpen) return;
 
+    beginContextMenuGesture(e);
     _pointers.push(e);
     _currentX = e.clientX / _scale;
     _currentY = e.clientY / _scale;
@@ -48,6 +89,7 @@ const pointerMove = e => {
     e.stopPropagation();
     if (_isModalOpen) return;
 
+    updateContextMenuGesture(e);
     const clientX = e.clientX / _scale;
     const clientY = e.clientY / _scale;
 
@@ -209,6 +251,7 @@ window.addEventListener("wheel", e => {
 window.addEventListener('pointerdown', e => {
     if (_isModalOpen) return;
 
+    beginContextMenuGesture(e);
     if (e.ctrlKey) {
         // Start rectangle selection
         _isRectSelect = true;

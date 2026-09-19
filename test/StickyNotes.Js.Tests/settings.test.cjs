@@ -47,7 +47,7 @@ const createApp = () => {
         }
     });
     const run = source => vm.runInContext(source, context);
-    for (const script of ["state.js", "settings.js", "notes.js", "menu.js"]) {
+    for (const script of ["state.js", "settings.js", "notes.js", "interaction.js", "menu.js"]) {
         run(readFileSync(path.join(scriptsPath, script), "utf8"));
     }
     return { run, getElement, handlers, calls, window };
@@ -127,6 +127,48 @@ test("canvas context menus still open after closing the note editor", () => {
     getElement("noteModal").dispatchEvent(new Event("hidden.bs.modal"));
 
     const event = new Event("contextmenu", { cancelable: true });
+    window.dispatchEvent(event);
+
+    assert.equal(event.defaultPrevented, true);
+    assert.equal(canvasMenuShown, true);
+    assert.equal(run("_isModalOpen"), true);
+});
+
+test("right-button dragging suppresses the context menu", () => {
+    const { run, getElement, window } = createApp();
+    let canvasMenuShown = false;
+    getElement("menuModal").addEventListener("shown.bs.modal", () => { canvasMenuShown = true; });
+    run(`
+        beginContextMenuGesture({ button: 2, pointerType: "mouse", pointerId: 1, clientX: 100, clientY: 100 });
+        updateContextMenuGesture({ pointerId: 1, clientX: 106, clientY: 100 });
+    `);
+
+    const event = new Event("contextmenu", { cancelable: true });
+    Object.defineProperties(event, {
+        clientX: { value: 106 },
+        clientY: { value: 100 }
+    });
+    window.dispatchEvent(event);
+
+    assert.equal(event.defaultPrevented, true);
+    assert.equal(canvasMenuShown, false);
+    assert.equal(run("_isModalOpen"), false);
+});
+
+test("tiny touch movement does not suppress the context menu", () => {
+    const { run, getElement, window } = createApp();
+    let canvasMenuShown = false;
+    getElement("menuModal").addEventListener("shown.bs.modal", () => { canvasMenuShown = true; });
+    run(`
+        beginContextMenuGesture({ button: 0, pointerType: "touch", pointerId: 2, clientX: 100, clientY: 100 });
+        updateContextMenuGesture({ pointerId: 2, clientX: 108, clientY: 100 });
+    `);
+
+    const event = new Event("contextmenu", { cancelable: true });
+    Object.defineProperties(event, {
+        clientX: { value: 108 },
+        clientY: { value: 100 }
+    });
     window.dispatchEvent(event);
 
     assert.equal(event.defaultPrevented, true);
