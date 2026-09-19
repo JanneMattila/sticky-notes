@@ -10,6 +10,7 @@ const createApp = () => {
     const elements = new Map();
     const handlers = new Map();
     const calls = [];
+    const window = new EventTarget();
     const createElement = () => {
         const element = new EventTarget();
         const classes = new Set();
@@ -30,6 +31,7 @@ const createApp = () => {
     };
     const context = vm.createContext({
         console: { log() {} },
+        window,
         StickyNotes: { WwwRoot: "/" },
         document: { body: getElement("body"), getElementById: getElement, createElement },
         connection: {
@@ -45,10 +47,10 @@ const createApp = () => {
         }
     });
     const run = source => vm.runInContext(source, context);
-    for (const script of ["state.js", "settings.js", "notes.js"]) {
+    for (const script of ["state.js", "settings.js", "notes.js", "menu.js"]) {
         run(readFileSync(path.join(scriptsPath, script), "utf8"));
     }
-    return { run, getElement, handlers, calls };
+    return { run, getElement, handlers, calls, window };
 };
 
 test("unlocking through settings restores Save in the shared Add Notes dialog", async () => {
@@ -101,4 +103,33 @@ test("resetting settings restores editing controls", () => {
     assert.equal(run("isReadonly()"), false);
     assert.equal(getElement("updateNoteSaveButton").classList.contains("d-none"), false);
     assert.equal(getElement("markdownViewEditButton").classList.contains("d-none"), false);
+});
+
+test("an open note editor preserves native context-menu events", () => {
+    const { run, getElement, window } = createApp();
+    let canvasMenuShown = false;
+    getElement("menuModal").addEventListener("shown.bs.modal", () => { canvasMenuShown = true; });
+    run(`editNoteMenu({ dataset: {} }, { text: "Copy this text", link: "", color: "lightyellow" });`);
+
+    const event = new Event("contextmenu", { cancelable: true });
+    window.dispatchEvent(event);
+
+    assert.equal(event.defaultPrevented, false);
+    assert.equal(canvasMenuShown, false);
+    assert.equal(run("_isModalOpen"), true);
+});
+
+test("canvas context menus still open after closing the note editor", () => {
+    const { run, getElement, window } = createApp();
+    let canvasMenuShown = false;
+    getElement("menuModal").addEventListener("shown.bs.modal", () => { canvasMenuShown = true; });
+    run(`editNoteMenu({ dataset: {} }, { text: "Existing note", link: "", color: "lightyellow" });`);
+    getElement("noteModal").dispatchEvent(new Event("hidden.bs.modal"));
+
+    const event = new Event("contextmenu", { cancelable: true });
+    window.dispatchEvent(event);
+
+    assert.equal(event.defaultPrevented, true);
+    assert.equal(canvasMenuShown, true);
+    assert.equal(run("_isModalOpen"), true);
 });

@@ -53,8 +53,8 @@ const showLinkedSessionDialog = () => {
 };
 
 window.addEventListener('contextmenu', e => {
-    e.preventDefault();
     if (_isModalOpen) return;
+    e.preventDefault();
 
     if (_sourceElement === undefined) {
         _isModalOpen = true;
